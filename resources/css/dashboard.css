@@ -1,0 +1,155 @@
+/* resources/css/dashboard.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.dashboard-body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.dashboard-header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-welcome {
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.dashboard-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dashboard-logout-form {
+    margin: 0;
+}
+
+.dashboard-logout-btn {
+    background: #dc3545;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dashboard-logout-btn:hover {
+    background: #c82333;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.dashboard-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    font-size: 2rem;
+}
+
+.dashboard-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.dashboard-btn {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    display: block;
+    border-left: 4px solid;
+}
+
+.dashboard-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.dashboard-btn-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.dashboard-btn-text {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-btn-desc {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Colores específicos para cada botón */
+.dashboard-btn-1 { border-left-color: #4a6cf7; }
+.dashboard-btn-2 { border-left-color: #28a745; }
+.dashboard-btn-3 { border-left-color: #ffc107; }
+.dashboard-btn-4 { border-left-color: #dc3545; }
+.dashboard-btn-5 { border-left-color: #6f42c1; }
+.dashboard-btn-6 { border-left-color: #fd7e14; }
+.dashboard-btn-7 { border-left-color: #20c997; }
+
+/* Efectos hover con colores */
+.dashboard-btn-1:hover { background-color: #f0f4ff; }
+.dashboard-btn-2:hover { background-color: #f0fff4; }
+.dashboard-btn-3:hover { background-color: #fffbf0; }
+.dashboard-btn-4:hover { background-color: #fff5f5; }
+.dashboard-btn-5:hover { background-color: #f8f5ff; }
+.dashboard-btn-6:hover { background-color: #fff8f0; }
+.dashboard-btn-7:hover { background-color: #f0fffa; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-buttons-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .dashboard-user-info {
+        flex-direction: column;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header {
+        padding: 1rem;
+    }
+    
+    .dashboard-btn {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-btn-icon {
+        font-size: 2rem;
+    }
+}
