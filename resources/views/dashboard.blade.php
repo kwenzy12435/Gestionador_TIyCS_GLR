@@ -29,7 +29,7 @@
                 <div class="dashboard-btn-desc">Gestión de dispositivos</div>
             </a>
 
-            <a href="#" class="dashboard-btn dashboard-btn-2">
+          <a href="/users" class="dashboard-btn dashboard-btn-2">
                 <div class="dashboard-btn-icon">👥</div>
                 <div class="dashboard-btn-text">Colaboradores</div>
                 <div class="dashboard-btn-desc">Gestión de usuarios</div>
