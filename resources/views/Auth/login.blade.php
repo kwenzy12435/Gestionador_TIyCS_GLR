@@ -1,46 +1,75 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema de Gestión TI</title>
-    <link rel="stylesheet" href="/css/login.css?v={{ time() }}">
-</head>
-<body class="login-body">
-    <div class="login-container">
-        <div class="login-header">
-            <h1>Sistema de Gestión TI</h1>
-            <p>Ingrese sus credenciales</p>
-        </div>
-        
-        @if(session('error'))
-            <div class="login-alert login-alert-error">{{ session('error') }}</div>
-        @endif
-        
-        @if(session('success'))
-            <div class="login-alert login-alert-success">{{ session('success') }}</div>
-        @endif
+@extends('layouts.app')
 
-        <form method="POST" action="{{ route('login.post') }}">
-            @csrf
-            
-            <div class="login-form-group">
-                <label for="usuario">Usuario</label>
-                <input type="text" id="usuario" name="usuario" value="{{ old('usuario') }}" required autofocus>
-            </div>
-            
-            <div class="login-form-group">
-                <label for="contrasena">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" required>
-            </div>
-            
-            <button type="submit" class="login-btn">Iniciar Sesión</button>
-        </form>
+@section('title', 'Iniciar Sesión - Sistema de Gestión TI')
 
-        <div class="login-footer">
-            <p>Usuario: admin / Contraseña: password</p>
-            <p>¿Problemas para acceder? Contacte al administrador</p>
+@section('content')
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-server me-2"></i>Sistema de Gestión TI
+                    </h4>
+                    <p class="mb-0 mt-2 small">Iniciar sesión en el panel de administración</p>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+                        
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        
+                        <div class="mb-3">
+                            <label for="usuario" class="form-label">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" class="form-control @error('usuario') is-invalid @enderror" 
+                                       id="usuario" name="usuario" value="{{ old('usuario') }}" 
+                                       required autofocus placeholder="Ingresa tu usuario">
+                            </div>
+                            @error('usuario')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contrasena" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control @error('contrasena') is-invalid @enderror" 
+                                       id="contrasena" name="contrasena" required 
+                                       placeholder="Ingresa tu contraseña">
+                            </div>
+                            @error('contrasena')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Recordar sesión</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+@endsection

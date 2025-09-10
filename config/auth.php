@@ -5,25 +5,19 @@ return [
         'guard' => 'web',
         'passwords' => 'users',
     ],
-
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-        'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
-            'hash' => false,
-        ],
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'usuarios_ti',
     ],
+],
 
     'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
-        ],
+    'usuarios_ti' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\UsuarioTI::class,
     ],
+],
 
     'passwords' => [
         'users' => [

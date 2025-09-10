@@ -1,3 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Reset y base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Utilidades */
+.text-center { text-align: center; }
+.btn-block { display: block; width: 100%; }
+.mb-3 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.btn { padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: 0.3s; border: none; }
+.btn-primary { background-color: #3498db; color: white; }
+.btn-primary:hover { background-color: #2980b9; }
+.card { background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 1rem; }

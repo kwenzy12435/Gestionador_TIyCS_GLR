@@ -3,48 +3,46 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Inertia\Response;
+use App\Models\UsuarioTI;
 
 class LoginController extends Controller
 {
-    public function create(): Response
+    public function showLoginForm()
     {
-        return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
-        ]);
+        return view('auth.login');
     }
 
-    public function store(LoginRequest $request): RedirectResponse
+    public function login(Request $request)
     {
-        $request->authenticate();
-
-        $request->session()->regenerate();
-
-        // Actualizar último login
-        $request->user()->update([
-            'last_login_at' => now(),
-            'last_login_ip' => $request->ip(),
+        $credentials = $request->validate([
+            'usuario' => 'required|string',
+            'contrasena' => 'required|string'
         ]);
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        $user = UsuarioTI::where('usuario', $credentials['usuario'])->first();
+
+        if ($user && password_verify($credentials['contrasena'], $user->contrasena)) {
+            Auth::login($user, $request->has('remember'));
+            
+            $request->session()->regenerate();
+            
+            return redirect()->intended('dashboard');
+        }
+
+        return back()->withErrors([
+            'usuario' => 'Las credenciales proporcionadas no son válidas.',
+        ])->withInput($request->except('contrasena'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
-
+        Auth::logout();
+        
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
+        
         return redirect('/');
     }
 }
