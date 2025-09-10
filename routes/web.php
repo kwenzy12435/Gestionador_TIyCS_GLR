@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioTIController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ColaboradorController;
+use App\Http\Controllers\InventarioDispositivoController;
 
 // Redirección principal al login
 Route::get('/', function () {
@@ -31,8 +33,9 @@ Route::middleware('auth')->group(function () {
     'update' => 'usuarios-ti.update',
     'destroy' => 'usuarios-ti.destroy',
 ]);
-    // Aquí puedes agregar más rutas protegidas
-    // Route::resource('inventario', InventarioController::class);
-    // Route::resource('tickets', TicketController::class);
-    // etc.
+Route::resource('colaboradores', ColaboradorController::class)
+    ->names('colaboradores')
+    ->parameters(['colaboradores' => 'id']);
+
+
 });

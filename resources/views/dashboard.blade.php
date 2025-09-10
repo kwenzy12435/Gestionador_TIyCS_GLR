@@ -90,6 +90,12 @@
                         </div>
                     </div>
                 </div>
+                <a href="{{ route('colaboradores.index') }}" class="btn btn-info">
+                 <i class="fas fa-user-friends me-2"></i>Colaboradores
+                </a> 
+                <a href="{{ route('inventario-dispositivos.index') }}" class="btn btn-success">
+                     <i class="fas fa-laptop me-2"></i>Inventario
+                </a>
                 <!-- Más cards... -->
             </div>
         </main>
