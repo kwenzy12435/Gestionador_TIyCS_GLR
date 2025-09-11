@@ -56,8 +56,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ route('inventario-dispositivos.index') }}">
                             <i class="fas fa-laptop me-2"></i>Inventario
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('licencias.index') }}">
+                            <i class="fas fa-key me-2"></i>Licencias
                         </a>
                     </li>
                     <li class="nav-item">
@@ -74,13 +79,18 @@
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
                 <div class="btn-toolbar">
-                    <a href="{{ route('usuarios-ti.create') }}" class="btn btn-primary">
+                    <a href="{{ route('usuarios-ti.create') }}" class="btn btn-primary me-2">
                         <i class="fas fa-plus me-2"></i>Nuevo Usuario TI
+                    </a>
+                    <a href="{{ route('inventario-dispositivos.index') }}" class="btn btn-success me-2">
+                        <i class="fas fa-laptop me-2"></i>Inventario
+                    </a>
+                    <a href="{{ route('licencias.index') }}" class="btn btn-warning">
+                        <i class="fas fa-key me-2"></i>Licencias
                     </a>
                 </div>
             </div>
 
-            <!-- Resto del contenido del dashboard -->
             <div class="row">
                 <div class="col-md-3 mb-3">
                     <div class="card text-white bg-primary">
@@ -90,14 +100,24 @@
                         </div>
                     </div>
                 </div>
-                <a href="{{ route('colaboradores.index') }}" class="btn btn-info">
-                 <i class="fas fa-user-friends me-2"></i>Colaboradores
-                </a> 
-                <a href="{{ route('inventario-dispositivos.index') }}" class="btn btn-success">
-                     <i class="fas fa-laptop me-2"></i>Inventario
-                </a>
-                <!-- Más cards... -->
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Inventario de Dispositivos</h5>
+                            <p class="card-text">{{ \App\Models\InventarioDispositivo::count() }} dispositivos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Licencias</h5>
+                            <p class="card-text">{{ \App\Models\Licencia::count() }} registradas</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </main>
     </div>
 </div>

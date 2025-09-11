@@ -5,6 +5,7 @@ use App\Http\Controllers\UsuarioTIController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ColaboradorController;
 use App\Http\Controllers\InventarioDispositivoController;
+use App\Http\Controllers\LicenciaController;
 
 // Redirección principal al login
 Route::get('/', function () {
@@ -37,5 +38,12 @@ Route::resource('colaboradores', ColaboradorController::class)
     ->names('colaboradores')
     ->parameters(['colaboradores' => 'id']);
 
-
+// Rutas para inventario de dispositivos
+Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
+    ->parameters(['inventario-dispositivos' => 'id'])
+    ->names('inventario-dispositivos');
+// Rutas para gestión de licencias
+Route::resource('licencias', LicenciaController::class)
+    ->parameters(['licencias' => 'id'])
+    ->names('licencias');
 });
