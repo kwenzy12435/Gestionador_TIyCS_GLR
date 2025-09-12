@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ColaboradorController;
 use App\Http\Controllers\InventarioDispositivoController;
 use App\Http\Controllers\LicenciaController;
+use App\Http\Controllers\ReporteActividadController;
 
 // Redirección principal al login
 Route::get('/', function () {
@@ -34,6 +35,7 @@ Route::middleware('auth')->group(function () {
     'update' => 'usuarios-ti.update',
     'destroy' => 'usuarios-ti.destroy',
 ]);
+// Rutas para inventario de colaboradores
 Route::resource('colaboradores', ColaboradorController::class)
     ->names('colaboradores')
     ->parameters(['colaboradores' => 'id']);
@@ -42,8 +44,14 @@ Route::resource('colaboradores', ColaboradorController::class)
 Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
     ->parameters(['inventario-dispositivos' => 'id'])
     ->names('inventario-dispositivos');
+
 // Rutas para gestión de licencias
 Route::resource('licencias', LicenciaController::class)
     ->parameters(['licencias' => 'id'])
     ->names('licencias');
+
+// Rutas para reporte de actividades
+    Route::resource('reporte_actividades', ReporteActividadController::class)
+    ->parameters(['reporte_actividades' => 'id'])
+    ->names('reporte_actividades');
 });

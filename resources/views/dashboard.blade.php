@@ -88,6 +88,9 @@
                     <a href="{{ route('licencias.index') }}" class="btn btn-warning">
                         <i class="fas fa-key me-2"></i>Licencias
                     </a>
+                    <a href="{{ route('reporte_actividades.index') }}" class="btn btn-info">
+                    <i class="fas fa-clipboard-list me-2"></i>Reporte Actividades
+                    </a>
                 </div>
             </div>
 

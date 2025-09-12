@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ReporteActividad;
+use App\Models\Colaborador;
+use App\Models\Canal;
+use App\Models\Naturaleza;
+use App\Models\UsuarioTI;
+use Illuminate\Http\Request;
+
+class ReporteActividadController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $reportes = ReporteActividad::with(['colaborador', 'canal', 'naturaleza', 'usuarioTi'])
+            ->orderBy('fecha', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return view('reporte_actividades.index', compact('reportes'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $colaboradores = Colaborador::all();
+        $canales = Canal::all();
+        $naturalezas = Naturaleza::all();
+        $usuariosTi = UsuarioTI::all();
+        
+        return view('reporte_actividades.create', compact('colaboradores', 'canales', 'naturalezas', 'usuariosTi'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'fecha' => 'required|date',
+            'colaborador_id' => 'nullable|exists:colaboradores,id',
+            'actividad' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'canal_id' => 'nullable|exists:canales,id',
+            'naturaleza_id' => 'nullable|exists:naturalezas,id',
+            'usuario_ti_id' => 'nullable|exists:usuarios_ti,id'
+        ]);
+
+        ReporteActividad::create($request->all());
+
+        return redirect()->route('reporte_actividades.index')
+            ->with('success', 'Reporte de actividad creado exitosamente.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        $reporte = ReporteActividad::with(['colaborador', 'canal', 'naturaleza', 'usuarioTi'])
+            ->findOrFail($id);
+            
+        return view('reporte_actividades.show', compact('reporte'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        $reporte = ReporteActividad::findOrFail($id);
+        $colaboradores = Colaborador::all();
+        $canales = Canal::all();
+        $naturalezas = Naturaleza::all();
+        $usuariosTi = UsuarioTI::all();
+        
+        return view('reporte_actividades.edit', compact('reporte', 'colaboradores', 'canales', 'naturalezas', 'usuariosTi'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $reporte = ReporteActividad::findOrFail($id);
+        
+        $request->validate([
+            'fecha' => 'required|date',
+            'colaborador_id' => 'nullable|exists:colaboradores,id',
+            'actividad' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'canal_id' => 'nullable|exists:canales,id',
+            'naturaleza_id' => 'nullable|exists:naturalezas,id',
+            'usuario_ti_id' => 'nullable|exists:usuarios_ti,id'
+        ]);
+
+        $reporte->update($request->all());
+
+        return redirect()->route('reporte_actividades.index')
+            ->with('success', 'Reporte de actividad actualizado exitosamente.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        try {
+            $reporte = ReporteActividad::findOrFail($id);
+            $reporte->delete();
+
+            return redirect()->route('reporte_actividades.index')
+                ->with('success', 'Reporte de actividad eliminado exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('reporte_actividades.index')
+                ->with('error', 'Error al eliminar el reporte: ' . $e->getMessage());
+        }
+    }
+}
