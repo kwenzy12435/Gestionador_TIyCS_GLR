@@ -7,6 +7,7 @@ use App\Http\Controllers\ColaboradorController;
 use App\Http\Controllers\InventarioDispositivoController;
 use App\Http\Controllers\LicenciaController;
 use App\Http\Controllers\ReporteActividadController;
+use App\Http\Controllers\BitacoraRespaldoController;
 
 // Redirección principal al login
 Route::get('/', function () {
@@ -54,4 +55,10 @@ Route::resource('licencias', LicenciaController::class)
     Route::resource('reporte_actividades', ReporteActividadController::class)
     ->parameters(['reporte_actividades' => 'id'])
     ->names('reporte_actividades');
+
+    // Rutas para bitacora respaldos contpaq
+Route::resource('bitacora_respaldo', BitacoraRespaldoController::class)
+     ->names('bitacora_respaldo');
+
+  
 });

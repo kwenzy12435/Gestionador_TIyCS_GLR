@@ -91,6 +91,9 @@
                     <a href="{{ route('reporte_actividades.index') }}" class="btn btn-info">
                     <i class="fas fa-clipboard-list me-2"></i>Reporte Actividades
                     </a>
+                    <a href="{{ route('bitacora_respaldo.index') }}" class="btn btn-info">
+                        <i class="fas fa-clipboard-list me-2"></i>Respaldos Contpaq
+                    </a>
                 </div>
             </div>
 
