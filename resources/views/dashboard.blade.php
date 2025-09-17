@@ -93,7 +93,13 @@
                     </a>
                     <a href="{{ route('bitacora_respaldo.index') }}" class="btn btn-info">
                         <i class="fas fa-clipboard-list me-2"></i>Respaldos Contpaq
-                    </a>
+                            <a href="{{ route('articulos.index') }}" class="btn btn-info">
+                                 <i class="fas fa-box me-2"></i>Gestionar Artículos
+                                </a>
+                                <a href="{{ route('monitoreo-red.index') }}" class="btn btn-primary">
+                            <i class="fas fa-network-wired me-2"></i>Monitoreo Red
+                                </a>
+
                 </div>
             </div>
 

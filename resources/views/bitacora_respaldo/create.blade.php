@@ -76,7 +76,7 @@
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                
+                                <label for="fecha_respaldo" class="form-label
                             </div>
                             
                             <div class="col-md-6 mb-3">

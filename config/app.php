@@ -2,6 +2,7 @@
 
 return [
 
+    'timezone' => 'America/Mexico_City',
     /*
     |--------------------------------------------------------------------------
     | Application Name
