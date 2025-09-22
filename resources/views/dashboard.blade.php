@@ -99,6 +99,15 @@
                                 <a href="{{ route('monitoreo-red.index') }}" class="btn btn-primary">
                             <i class="fas fa-network-wired me-2"></i>Monitoreo Red
                                 </a>
+                                <!-- Botón simple -->
+<a href="{{ route('admin.configsistem.index') }}" class="btn btn-primary">
+    <i class="fas fa-cog"></i> Admin Configuration
+</a>
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('admin.bajas.index') }}">
+        <i class="fas fa-history me-2"></i>Historial de Bajas
+    </a>
+</li>
 
                 </div>
             </div>

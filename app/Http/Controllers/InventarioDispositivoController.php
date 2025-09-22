@@ -211,19 +211,58 @@ class InventarioDispositivoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    
     public function destroy($id)
     {
-        try {
-            DB::table('inventario_dispositivos')
-                ->where('id', $id)
-                ->delete();
-
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('success', 'Dispositivo eliminado exitosamente.');
-                
-        } catch (\Exception $e) {
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('error', 'Error al eliminar el dispositivo: ' . $e->getMessage());
+            try {
+        $usuario = auth()->user();
+        $nombreCompleto = $usuario->nombres . ' ' . ($usuario->apellidos ?? '');
+        
+        // Obtener el dispositivo antes de eliminarlo
+        $dispositivo = DB::table('inventario_dispositivos')->where('id', $id)->first();
+        
+        if (!$dispositivo) {
+            throw new \Exception('Dispositivo no encontrado');
         }
+        
+        // Obtener nombre del colaborador
+        $colaboradorNombre = null;
+        if ($dispositivo->colaborador_id) {
+            $colaborador = DB::table('colaboradores')
+                ->where('id', $dispositivo->colaborador_id)
+                ->first();
+            $colaboradorNombre = $colaborador->nombre ?? null;
+        }
+        
+        DB::transaction(function () use ($id, $usuario, $nombreCompleto, $dispositivo, $colaboradorNombre) {
+            // Insertar manualmente en log_bajas
+            DB::table('log_bajas')->insert([
+                'tabla_afectada' => 'inventario_dispositivos',
+                'registro_id' => $id,
+                'usuario_ti_id' => $usuario->id,
+                'usuario_nombre_completo' => $nombreCompleto,
+                'accion' => 'DELETE',
+                'estado_texto' => $dispositivo->estado,
+                'usuario_nombre' => $colaboradorNombre,
+                'marca_id' => $dispositivo->marca_id,
+                'numero_serie' => $dispositivo->numero_serie ?? $dispositivo->serie,
+                'modelo' => $dispositivo->modelo,
+                'mac_address' => $dispositivo->mac,
+                'fecha_ultima_edicion' => $dispositivo->updated_at,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            // Eliminar el dispositivo
+            DB::table('inventario_dispositivos')->where('id', $id)->delete();
+        });
+        
+        return redirect()->back()->with('success', 'Dispositivo eliminado correctamente.');
+        
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
     }
+
+    }
+
 }

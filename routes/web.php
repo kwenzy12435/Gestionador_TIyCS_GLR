@@ -10,6 +10,9 @@ use App\Http\Controllers\ReporteActividadController;
 use App\Http\Controllers\BitacoraRespaldoController;
 use App\Http\Controllers\ArticuloController;
 use App\Http\Controllers\MonitoreoRedController;
+use App\Http\Controllers\ConfigSistemaController;
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\LogBajasController;
 
 // Redirección principal al login
 Route::get('/', function () {
@@ -68,4 +71,21 @@ Route::resource('articulos', ArticuloController::class);
  
 // Rutas para monitoreo de red
   Route::resource('monitoreo-red', MonitoreoRedController::class);
+
+  // rutas para configuración del sistema
+Route::prefix('admin/configsistem')->group(function () {
+    Route::get('/', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index');
+    Route::get('/{tabla}', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index.tabla');
+    Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])->name('admin.configsistem.store');
+    Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])->name('admin.configsistem.update');
+    Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])->name('admin.configsistem.destroy');
+});
+// Rutas para el historial de bajas
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/bajas', [LogBajasController::class, 'index'])->name('admin.bajas.index');
+    Route::get('/bajas/buscar', [LogBajasController::class, 'search'])->name('admin.bajas.search');
+    Route::get('/bajas/{id}', [LogBajasController::class, 'show'])->name('admin.bajas.show');
+    Route::get('/bajas/exportar/pdf', [LogBajasController::class, 'exportPdf'])->name('admin.bajas.export.pdf');
+});
+
 });
