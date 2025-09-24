@@ -7,9 +7,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "bacon/bacon-qr-code": "^3.0",
         "consoletvs/charts": "^6.8",
         "dragon-code/contracts": "^2.24",
+        "endroid/qr-code": "4.0",
         "haruncpi/laravel-id-generator": "^1.1",
         "intervention/image": "^3.11",
         "jenssegers/date": "^2.0",

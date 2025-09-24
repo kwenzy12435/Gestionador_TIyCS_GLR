@@ -14,6 +14,8 @@ use App\Http\Controllers\ConfigSistemaController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\LogBajasController;
 
+
+
 // Redirección principal al login
 Route::get('/', function () {
     return redirect()->route('login');
@@ -46,10 +48,15 @@ Route::resource('colaboradores', ColaboradorController::class)
     ->names('colaboradores')
     ->parameters(['colaboradores' => 'id']);
 
+// Rutas para QR
+Route::get('/inventario-dispositivos/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])->name('inventario-dispositivos.qr.descargar');
+Route::get('/inventario-dispositivos/{id}/qr-imprimible', [InventarioDispositivoController::class, 'qrImprimible'])->name('inventario-dispositivos.qr.imprimible');
+
 // Rutas para inventario de dispositivos
 Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
     ->parameters(['inventario-dispositivos' => 'id'])
     ->names('inventario-dispositivos');
+    
 
 // Rutas para gestión de licencias
 Route::resource('licencias', LicenciaController::class)
