@@ -16,6 +16,7 @@ use App\Http\Controllers\LogBajasController;
 
 
 
+
 // Redirección principal al login
 Route::get('/', function () {
     return redirect()->route('login');
@@ -58,10 +59,9 @@ Route::resource('inventario-dispositivos', InventarioDispositivoController::clas
     ->names('inventario-dispositivos');
     
 
-// Rutas para gestión de licencias
-Route::resource('licencias', LicenciaController::class)
-    ->parameters(['licencias' => 'id'])
-    ->names('licencias');
+// Rutas para licencias
+Route::resource('licencias', LicenciaController::class);
+Route::post('/confirmar-password', [LicenciaController::class, 'confirmarPassword'])->name('confirmar-password');
 
 // Rutas para reporte de actividades
     Route::resource('reporte_actividades', ReporteActividadController::class)
@@ -94,5 +94,6 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/bajas/{id}', [LogBajasController::class, 'show'])->name('admin.bajas.show');
     Route::get('/bajas/exportar/pdf', [LogBajasController::class, 'exportPdf'])->name('admin.bajas.export.pdf');
 });
+
 
 });

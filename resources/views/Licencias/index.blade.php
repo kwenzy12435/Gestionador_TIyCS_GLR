@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Licencias - Sistema de Gestión TI')
-
+  @vite(['resources/js/licencias.js'])
 @section('content')
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
@@ -69,6 +69,27 @@
                 </div>
             @endif
 
+            <!-- Modal para confirmar contraseña -->
+            <div class="modal fade" id="passwordModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmar Contraseña</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Por seguridad, ingrese su contraseña para continuar:</p>
+                            <input type="password" id="passwordInput" class="form-control" placeholder="Contraseña">
+                            <div id="passwordError" class="text-danger mt-2" style="display: none;"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -109,16 +130,12 @@
                                         <a href="{{ route('licencias.show', $licencia->id) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('licencias.edit', $licencia->id) }}" class="btn btn-sm btn-warning">
+                                        <button class="btn btn-sm btn-warning btn-editar" data-id="{{ $licencia->id }}">
                                             <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('licencias.destroy', $licencia->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta licencia?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btn-eliminar" data-id="{{ $licencia->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -130,4 +147,10 @@
         </main>
     </div>
 </div>
+
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 @endsection
+

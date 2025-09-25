@@ -45,4 +45,23 @@ class LoginController extends Controller
         
         return redirect('/');
     }
+    public function verificarPassword(Request $request)
+{
+    $request->validate([
+        'password' => 'required|string',
+    ]);
+
+    $user = Auth::user();
+
+    if (! $user) {
+        return response()->json(['success' => false], 401);
+    }
+
+    // Tu proyecto usa password_verify en login, así usamos lo mismo:
+    if (password_verify($request->password, $user->contrasena)) {
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false], 403);
+}
 }
