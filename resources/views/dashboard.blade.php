@@ -79,7 +79,7 @@
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
                 <div class="btn-toolbar">
-                    <a href="{{ route('usuarios-ti.create') }}" class="btn btn-primary me-2">
+                   <a href="{{ route('usuarios-ti.index') }}" class="btn btn-light btn-sm">
                         <i class="fas fa-plus me-2"></i>Nuevo Usuario TI
                     </a>
                     <a href="{{ route('inventario-dispositivos.index') }}" class="btn btn-success me-2">

@@ -14,13 +14,12 @@ class UsuarioTI extends Authenticatable
     
     protected $fillable = [
         'usuario',
-        'nombres',
+        'nombres', 
         'apellidos',
         'puesto',
         'telefono',
         'rol',
-        'contrasena',
-        'remember_token'
+        'contrasena' 
     ];
 
     protected $hidden = [
@@ -28,8 +27,21 @@ class UsuarioTI extends Authenticatable
         'remember_token',
     ];
 
+
+
     public function getAuthPassword()
     {
         return $this->contrasena;
+    }
+
+    // ✅ Helper para roles
+    public function isAdmin()
+    {
+        return $this->rol === 'ADMIN';
+    }
+
+    public function isAuxiliarTI()
+    {
+        return $this->rol === 'AUXILIAR-TI';
     }
 }

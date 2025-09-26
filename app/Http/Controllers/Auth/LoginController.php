@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\UsuarioTI;
 
 class LoginController extends Controller
@@ -14,54 +15,46 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+   public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'usuario' => 'required|string',
-            'contrasena' => 'required|string'
-        ]);
-
-        $user = UsuarioTI::where('usuario', $credentials['usuario'])->first();
-
-        if ($user && password_verify($credentials['contrasena'], $user->contrasena)) {
-            Auth::login($user, $request->has('remember'));
-            
-            $request->session()->regenerate();
-            
-            return redirect()->intended('dashboard');
-        }
-
-        return back()->withErrors([
-            'usuario' => 'Las credenciales proporcionadas no son válidas.',
-        ])->withInput($request->except('contrasena'));
-    }
-
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        return redirect('/');
-    }
-    public function verificarPassword(Request $request)
-{
-    $request->validate([
-        'password' => 'required|string',
+    // Validar los datos del formulario
+    $credentials = $request->validate([
+        'usuario' => 'required|string',
+        'contrasena' => 'required|string'
     ]);
 
-    $user = Auth::user();
+    // Buscar el usuario en la base de datos
+    $user = UsuarioTI::where('usuario', $credentials['usuario'])->first();
 
-    if (! $user) {
-        return response()->json(['success' => false], 401);
+    // Verificar si el usuario existe y la contraseña es correcta
+    if ($user && Hash::check($credentials['contrasena'], $user->contrasena)) {
+        // Iniciar sesión
+        Auth::login($user);
+        
+        // Regenerar la sesión
+        $request->session()->regenerate();
+        
+        // Redirigir AL DASHBOARD después del login exitoso
+        return redirect()->route('dashboard')->with('success', '¡Bienvenido ' . $user->nombres . '!');
     }
 
-    // Tu proyecto usa password_verify en login, así usamos lo mismo:
-    if (password_verify($request->password, $user->contrasena)) {
-        return response()->json(['success' => true]);
+    // Si las credenciales son incorrectas
+    return back()->withErrors([
+        'usuario' => 'Las credenciales proporcionadas no son válidas.',
+    ]);
     }
-
-    return response()->json(['success' => false], 403);
-}
+    public function logout(Request $request)
+    {
+        // Cerrar sesión
+        Auth::logout();
+        
+        // Invalidar la sesión
+        $request->session()->invalidate();
+        
+        // Regenerar el token CSRF
+        $request->session()->regenerateToken();
+        
+        // Redirigir al login
+        return redirect('/login')->with('status', 'Sesión cerrada correctamente.');
+    }
 }

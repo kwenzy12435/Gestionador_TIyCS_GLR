@@ -11,7 +11,7 @@
                     <h4 class="mb-0">
                         <i class="fas fa-server me-2"></i>Sistema de Gestión TI
                     </h4>
-                    <p class="mb-0 mt-2 small">Iniciar sesión en el panel de administración</p>
+                  
                 </div>
                 
                 <div class="card-body">
