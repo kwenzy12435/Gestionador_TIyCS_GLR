@@ -34,7 +34,7 @@ class UsuarioTI extends Authenticatable
         return $this->contrasena;
     }
 
-    // ✅ Helper para roles
+    //  Helper para roles
     public function isAdmin()
     {
         return $this->rol === 'ADMIN';

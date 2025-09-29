@@ -53,7 +53,7 @@ Route::middleware('auth')->group(function () {
         ->names('colaboradores')
         ->parameters(['colaboradores' => 'id']);
 
-    // Rutas para QR (deben ir ANTES del resource para evitar conflictos)
+    // Rutas para QR 
     Route::get('/inventario-dispositivos/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])->name('inventario-dispositivos.qr.descargar');
     Route::get('/inventario-dispositivos/{id}/qr-imprimible', [InventarioDispositivoController::class, 'qrImprimible'])->name('inventario-dispositivos.qr.imprimible');
 
@@ -64,7 +64,20 @@ Route::middleware('auth')->group(function () {
 
     // Rutas para licencias
     Route::resource('licencias', LicenciaController::class);
+    
     Route::post('/confirmar-password', [LicenciaController::class, 'confirmarPassword'])->name('confirmar-password');
+    Route::get('licencias/{id}/ver-contrasena', [LicenciaController::class, 'verContrasena'])
+    ->name('licencias.ver-contrasena');
+    
+    Route::post('licencias/{id}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])
+    ->name('licencias.procesar-ver-contrasena');
+
+    Route::post('licencias/{id}/revelar-contrasena', [LicenciaController::class, 'revelarContrasena'])
+    ->name('licencias.revelar-contrasena');
+
+    Route::post('licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
+    ->name('licencias.confirmar-password')
+    ->middleware('throttle:10,1');
 
     // Rutas para reporte de actividades
     Route::resource('reporte_actividades', ReporteActividadController::class)

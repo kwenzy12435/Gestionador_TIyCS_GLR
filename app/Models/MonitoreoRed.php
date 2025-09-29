@@ -30,9 +30,49 @@ class MonitoreoRed extends Model
         'clientes_conectados' => 'integer'
     ];
 
-    // Relación con el usuario responsable
+
     public function usuarioResponsable()
     {
-        return $this->belongsTo(UsuarioTi::class, 'responsable');
+        return $this->belongsTo(UsuarioTI::class, 'responsable');
+    }
+
+    // 
+    public function scopeDelDia($query, $fecha = null)
+    {
+        $fecha = $fecha ?: now()->format('Y-m-d');
+        return $query->where('fecha', $fecha);
+    }
+
+    public function scopeConProblemas($query)
+    {
+        return $query->where('porcentaje_experiencia_wifi', '<', 80)
+                    ->orWhere('velocidad_descarga', '<', 10);
+    }
+
+    public function scopePorResponsable($query, $responsableId)
+    {
+        return $query->where('responsable', $responsableId);
+    }
+
+ 
+    public function getEstadoRedAttribute()
+    {
+        if ($this->porcentaje_experiencia_wifi < 60) {
+            return 'Crítico';
+        } elseif ($this->porcentaje_experiencia_wifi < 80) {
+            return 'Regular';
+        } else {
+            return 'Óptimo';
+        }
+    }
+
+
+    public function esConsistente()
+    {
+        return $this->velocidad_descarga >= 0 && 
+               $this->velocidad_subida >= 0 && 
+               $this->porcentaje_experiencia_wifi >= 0 && 
+               $this->porcentaje_experiencia_wifi <= 100 &&
+               $this->clientes_conectados >= 0;
     }
 }

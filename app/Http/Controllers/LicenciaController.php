@@ -6,8 +6,11 @@ use App\Models\Licencia;
 use App\Models\Colaborador;
 use App\Models\Plataforma;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Carbon\Carbon;
 
 class LicenciaController extends Controller
 {
@@ -26,21 +29,31 @@ class LicenciaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'colaborador_id' => 'nullable|exists:colaboradores,id',
             'cuenta' => 'required|string|max:150|unique:licencias',
-            'contrasena' => 'required|string|min:6',
-            'plataforma_id' => 'nullable|exists:plataformas,id',
-            'expiracion' => 'nullable|date'
+            'contrasena' => 'required|string|min:8|max:255',
+            'plataforma_id' => 'required|exists:plataformas,id',
+            'expiracion' => 'nullable|date|after_or_equal:today'
+        ], [
+            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'plataforma_id.required' => 'La plataforma es obligatoria.',
+            'expiracion.after_or_equal' => 'La fecha de expiración no puede ser anterior a hoy.'
         ]);
 
-        Licencia::create($request->all());
+      
+        $validated['contrasena'] = Crypt::encryptString($validated['contrasena']);
+
+        Licencia::create($validated);
+
         return redirect()->route('licencias.index')->with('success','Licencia creada exitosamente.');
     }
 
     public function show($id)
     {
         $licencia = Licencia::with(['colaborador','plataforma'])->findOrFail($id);
+        
+        // Mostrar la vista normal sin contraseña visible inicialmente
         return view('licencias.show', compact('licencia'));
     }
 
@@ -56,39 +69,151 @@ class LicenciaController extends Controller
     {
         $licencia = Licencia::findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'colaborador_id' => 'nullable|exists:colaboradores,id',
             'cuenta' => 'required|string|max:150|unique:licencias,cuenta,' . $id,
-            'contrasena' => 'nullable|string|min:6',
-            'plataforma_id' => 'nullable|exists:plataformas,id',
-            'expiracion' => 'nullable|date'
+            'contrasena' => 'nullable|string|min:8|max:255',
+            'plataforma_id' => 'required|exists:plataformas,id',
+            'expiracion' => 'nullable|date|after_or_equal:today'
+        ], [
+            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'plataforma_id.required' => 'La plataforma es obligatoria.',
+            'expiracion.after_or_equal' => 'La fecha de expiración no puede ser anterior a hoy.'
         ]);
 
-        $licencia->update($request->all());
+      
+        if ($request->filled('contrasena')) {
+            $validated['contrasena'] = Crypt::encryptString($validated['contrasena']);
+        } else {
+            // Mantener la contraseña actual
+            unset($validated['contrasena']);
+        }
+
+        $licencia->update($validated);
+
         return redirect()->route('licencias.index')->with('success','Licencia actualizada exitosamente.');
     }
 
     public function destroy($id)
     {
-        $licencia = Licencia::findOrFail($id);
-        $licencia->delete();
-        return redirect()->route('licencias.index')->with('success','Licencia eliminada exitosamente.');
+        try {
+            $licencia = Licencia::findOrFail($id);
+            $licencia->delete();
+
+            return redirect()->route('licencias.index')->with('success','Licencia eliminada exitosamente.');
+            
+        } catch (\Exception $e) {
+            return redirect()->route('licencias.index')
+                ->with('error', 'Error al eliminar la licencia: ' . $e->getMessage());
+        }
     }
 
-    public function confirmarPassword(Request $request)
+   
+    public function revelarContrasena(Request $request, $id)
+    {
+        $licencia = Licencia::findOrFail($id);
+        $passwordUsuario = $request->input('password');
+
+        // Verificar que el usuario esté autenticado
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Usuario no autenticado.'
+            ], 401);
+        }
+
+        $usuario = Auth::user();
+
+        // Verificar contraseña del usuario
+        if (!Hash::check($passwordUsuario, $usuario->contrasena)) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Contraseña incorrecta.'
+            ], 422);
+        }
+
+        try {
+            // Desencriptar la contraseña de la licencia
+            $contrasenaDesencriptada = Crypt::decryptString($licencia->contrasena);
+            
+            return response()->json([
+                'success' => true,
+                'contrasena' => $contrasenaDesencriptada,
+                'message' => 'Contraseña revelada correctamente.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al desencriptar la contraseña de la licencia.'
+            ], 500);
+        }
+    }
+
+   
+    public function verContrasena($id)
+    {
+        $licencia = Licencia::findOrFail($id);
+        return view('licencias.ver_contrasena', compact('licencia'));
+    }
+
+    public function procesarVerContrasena(Request $request, $id)
+    {
+        $licencia = Licencia::findOrFail($id);
+        $passwordUsuario = $request->input('password');
+
+        // Verificar contraseña del usuario
+        if (!Hash::check($passwordUsuario, Auth::user()->contrasena)) {
+            return redirect()->back()
+                ->with('error', 'Contraseña incorrecta.')
+                ->withInput();
+        }
+
+        try {
+            $contrasenaDesencriptada = Crypt::decryptString($licencia->contrasena);
+            
+            // Mostrar la contraseña en la misma vista
+            return view('licencias.ver_contrasena', [
+                'licencia' => $licencia,
+                'contrasenaRevelada' => $contrasenaDesencriptada,
+                'mostrarContrasena' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al desencriptar la contraseña.');
+        }
+    }
+public function confirmarPassword(Request $request): JsonResponse
 {
     $user = Auth::user();
-    $password = $request->input('password');
 
     if (!$user) {
-        return response()->json(['success' => false, 'message' => 'Usuario no autenticado']);
+        return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
     }
 
-    // Compara la contraseña ingresada con la columna 'contrasena'
-    if (Hash::check($password, $user->contrasena)) {
+    $request->validate([
+        'password' => 'required|string'
+    ]);
+
+    if (Hash::check($request->input('password'), $user->contrasena)) {
         return response()->json(['success' => true]);
     }
 
-    return response()->json(['success' => false, 'message' => 'Contraseña incorrecta']);
+    return response()->json(['success' => false, 'message' => 'Contraseña incorrecta'], 403);
 }
+    
+    public function licenciasPorExpiar()
+    {
+        $fechaLimite = Carbon::now()->addDays(30);
+        
+        $licencias = Licencia::with(['colaborador', 'plataforma'])
+            ->whereNotNull('expiracion')
+            ->where('expiracion', '<=', $fechaLimite)
+            ->where('expiracion', '>=', Carbon::today())
+            ->orderBy('expiracion')
+            ->get();
+
+        return view('licencias.por_expiar', compact('licencias'));
+    }
 }

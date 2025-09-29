@@ -15,6 +15,7 @@ use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Carbon\Carbon;
 
 class InventarioDispositivoController extends Controller
 {
@@ -23,17 +24,9 @@ class InventarioDispositivoController extends Controller
      */
     public function index()
     {
-        $dispositivos = DB::table('inventario_dispositivos')
-            ->leftJoin('tipos_dispositivo', 'inventario_dispositivos.tipo_id', '=', 'tipos_dispositivo.id')
-            ->leftJoin('marcas', 'inventario_dispositivos.marca_id', '=', 'marcas.id')
-            ->leftJoin('colaboradores', 'inventario_dispositivos.colaborador_id', '=', 'colaboradores.id')
-            ->select(
-                'inventario_dispositivos.*',
-                'tipos_dispositivo.nombre as tipo_nombre',
-                'marcas.nombre as marca_nombre',
-                'colaboradores.nombre as colaborador_nombre',
-                'colaboradores.apellidos as colaborador_apellidos'
-            )
+      
+        $dispositivos = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('inventario_dispositivos.index', compact('dispositivos'));
@@ -61,7 +54,7 @@ class InventarioDispositivoController extends Controller
             'estado' => 'required|in:nuevo,asignado,baja,reparación',
             'tipo_id' => 'required|exists:tipos_dispositivo,id',
             'marca_id' => 'required|exists:marcas,id',
-            'mac' => 'nullable|string|max:50|unique:inventario_dispositivos',
+            'mac' => 'nullable|string|max:50|unique:inventario_dispositivos|regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
             'modelo' => 'required|string|max:100',
             'serie' => 'nullable|string|max:100',
             'numero_serie' => 'required|string|max:100|unique:inventario_dispositivos',
@@ -70,33 +63,22 @@ class InventarioDispositivoController extends Controller
             'ssd' => 'nullable|string|max:100',
             'hdd' => 'nullable|string|max:100',
             'color' => 'nullable|string|max:50',
-            'costo' => 'nullable|numeric|min:0',
-            'fecha_compra' => 'nullable|date',
-            'garantia_hasta' => 'nullable|date',
+            'costo' => 'nullable|numeric|min:0|max:999999.99',
+            'fecha_compra' => 'nullable|date|before_or_equal:today',
+            'garantia_hasta' => 'nullable|date|after:fecha_compra',
             'colaborador_id' => 'nullable|exists:colaboradores,id'
+        ], [
+            'mac.regex' => 'El formato MAC debe ser: XX:XX:XX:XX:XX:XX o XX-XX-XX-XX-XX-XX',
+            'mac.unique' => 'Esta dirección MAC ya está registrada en el sistema',
+            'numero_serie.unique' => 'Este número de serie ya está registrado en el sistema',
+            'fecha_compra.before_or_equal' => 'La fecha de compra no puede ser futura',
+            'garantia_hasta.after' => 'La fecha de garantía debe ser posterior a la fecha de compra',
+            'costo.max' => 'El costo no puede ser mayor a 999,999.99'
         ]);
 
         try {
-            DB::table('inventario_dispositivos')->insert([
-                'estado' => $validated['estado'],
-                'tipo_id' => $validated['tipo_id'],
-                'marca_id' => $validated['marca_id'],
-                'mac' => $validated['mac'] ?? null,
-                'modelo' => $validated['modelo'],
-                'serie' => $validated['serie'] ?? null,
-                'numero_serie' => $validated['numero_serie'],
-                'procesador' => $validated['procesador'] ?? null,
-                'memoria_ram' => $validated['memoria_ram'] ?? null,
-                'ssd' => $validated['ssd'] ?? null,
-                'hdd' => $validated['hdd'] ?? null,
-                'color' => $validated['color'] ?? null,
-                'costo' => $validated['costo'] ?? null,
-                'fecha_compra' => $validated['fecha_compra'] ?? null,
-                'garantia_hasta' => $validated['garantia_hasta'] ?? null,
-                'colaborador_id' => $validated['colaborador_id'] ?? null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+          
+            InventarioDispositivo::create($validated);
 
             return redirect()->route('inventario-dispositivos.index')
                 ->with('success', 'Dispositivo creado exitosamente.');
@@ -112,28 +94,11 @@ class InventarioDispositivoController extends Controller
      * Display the specified resource.
      */
     public function show($id)
-    {
-        $dispositivo = DB::table('inventario_dispositivos')
-            ->leftJoin('tipos_dispositivo', 'inventario_dispositivos.tipo_id', '=', 'tipos_dispositivo.id')
-            ->leftJoin('marcas', 'inventario_dispositivos.marca_id', '=', 'marcas.id')
-            ->leftJoin('colaboradores', 'inventario_dispositivos.colaborador_id', '=', 'colaboradores.id')
-            ->select(
-                'inventario_dispositivos.*',
-                'tipos_dispositivo.nombre as tipo_nombre',
-                'marcas.nombre as marca_nombre',
-                'colaboradores.nombre as colaborador_nombre',
-                'colaboradores.apellidos as colaborador_apellidos',
-                'colaboradores.puesto as colaborador_puesto'
-            )
-            ->where('inventario_dispositivos.id', $id)
-            ->first();
+    {  
+        $dispositivo = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
+            ->findOrFail($id);
 
-        if (!$dispositivo) {
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('error', 'Dispositivo no encontrado.');
-        }
-
-        // Generar QR para la vista show usando Endroid
+        // Generar QR para la vista show
         $qrData = $this->generarDatosQR($dispositivo);
         $qrCodeSvg = $this->generarQRCode($qrData, 150, 'svg');
 
@@ -145,14 +110,8 @@ class InventarioDispositivoController extends Controller
      */
     public function edit($id)
     {
-        $dispositivo = DB::table('inventario_dispositivos')
-            ->where('id', $id)
-            ->first();
-
-        if (!$dispositivo) {
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('error', 'Dispositivo no encontrado.');
-        }
+  
+        $dispositivo = InventarioDispositivo::findOrFail($id);
 
         $tipos = TipoDispositivo::all();
         $marcas = Marca::all();
@@ -167,11 +126,13 @@ class InventarioDispositivoController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $dispositivo = InventarioDispositivo::findOrFail($id);
+
         $validated = $request->validate([
             'estado' => 'required|in:nuevo,asignado,baja,reparación',
             'tipo_id' => 'required|exists:tipos_dispositivo,id',
             'marca_id' => 'required|exists:marcas,id',
-            'mac' => 'nullable|string|max:50|unique:inventario_dispositivos,mac,' . $id,
+            'mac' => 'nullable|string|max:50|unique:inventario_dispositivos,mac,' . $id . '|regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
             'modelo' => 'required|string|max:100',
             'serie' => 'nullable|string|max:100',
             'numero_serie' => 'required|string|max:100|unique:inventario_dispositivos,numero_serie,' . $id,
@@ -180,34 +141,21 @@ class InventarioDispositivoController extends Controller
             'ssd' => 'nullable|string|max:100',
             'hdd' => 'nullable|string|max:100',
             'color' => 'nullable|string|max:50',
-            'costo' => 'nullable|numeric|min:0',
-            'fecha_compra' => 'nullable|date',
-            'garantia_hasta' => 'nullable|date',
+            'costo' => 'nullable|numeric|min:0|max:999999.99',
+            'fecha_compra' => 'nullable|date|before_or_equal:today',
+            'garantia_hasta' => 'nullable|date|after:fecha_compra',
             'colaborador_id' => 'nullable|exists:colaboradores,id'
+        ], [
+            'mac.regex' => 'El formato MAC debe ser: XX:XX:XX:XX:XX:XX o XX-XX-XX-XX-XX-XX',
+            'mac.unique' => 'Esta dirección MAC ya está registrada en el sistema',
+            'numero_serie.unique' => 'Este número de serie ya está registrado en el sistema',
+            'fecha_compra.before_or_equal' => 'La fecha de compra no puede ser futura',
+            'garantia_hasta.after' => 'La fecha de garantía debe ser posterior a la fecha de compra'
         ]);
 
         try {
-            DB::table('inventario_dispositivos')
-                ->where('id', $id)
-                ->update([
-                    'estado' => $validated['estado'],
-                    'tipo_id' => $validated['tipo_id'],
-                    'marca_id' => $validated['marca_id'],
-                    'mac' => $validated['mac'] ?? null,
-                    'modelo' => $validated['modelo'],
-                    'serie' => $validated['serie'] ?? null,
-                    'numero_serie' => $validated['numero_serie'],
-                    'procesador' => $validated['procesador'] ?? null,
-                    'memoria_ram' => $validated['memoria_ram'] ?? null,
-                    'ssd' => $validated['ssd'] ?? null,
-                    'hdd' => $validated['hdd'] ?? null,
-                    'color' => $validated['color'] ?? null,
-                    'costo' => $validated['costo'] ?? null,
-                    'fecha_compra' => $validated['fecha_compra'] ?? null,
-                    'garantia_hasta' => $validated['garantia_hasta'] ?? null,
-                    'colaborador_id' => $validated['colaborador_id'] ?? null,
-                    'updated_at' => now(),
-                ]);
+           
+            $dispositivo->update($validated);
 
             return redirect()->route('inventario-dispositivos.index')
                 ->with('success', 'Dispositivo actualizado exitosamente.');
@@ -225,53 +173,49 @@ class InventarioDispositivoController extends Controller
     public function destroy($id)
     {
         try {
+            $dispositivo = InventarioDispositivo::with(['colaborador'])->findOrFail($id);
             $usuario = auth()->user();
-            $nombreCompleto = $usuario->nombres . ' ' . ($usuario->apellidos ?? '');
-            
-            // Obtener el dispositivo antes de eliminarlo
-            $dispositivo = DB::table('inventario_dispositivos')->where('id', $id)->first();
-            
-            if (!$dispositivo) {
-                throw new \Exception('Dispositivo no encontrado');
-            }
-            
-            // Obtener nombre del colaborador
-            $colaboradorNombre = null;
-            if ($dispositivo->colaborador_id) {
-                $colaborador = DB::table('colaboradores')
-                    ->where('id', $dispositivo->colaborador_id)
-                    ->first();
-                $colaboradorNombre = $colaborador->nombre ?? null;
-            }
-            
-            DB::transaction(function () use ($id, $usuario, $nombreCompleto, $dispositivo, $colaboradorNombre) {
-                // Insertar manualmente en log_bajas
-                DB::table('log_bajas')->insert([
-                    'tabla_afectada' => 'inventario_dispositivos',
-                    'registro_id' => $id,
-                    'usuario_ti_id' => $usuario->id,
-                    'usuario_nombre_completo' => $nombreCompleto,
-                    'accion' => 'DELETE',
-                    'estado_texto' => $dispositivo->estado,
-                    'usuario_nombre' => $colaboradorNombre,
-                    'marca_id' => $dispositivo->marca_id,
-                    'numero_serie' => $dispositivo->numero_serie ?? $dispositivo->serie,
-                    'modelo' => $dispositivo->modelo,
-                    'mac_address' => $dispositivo->mac,
-                    'fecha_ultima_edicion' => $dispositivo->updated_at,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+
+            DB::transaction(function () use ($dispositivo, $usuario) {
+              
+                $this->registrarBajaEnLog($dispositivo, $usuario);
                 
                 // Eliminar el dispositivo
-                DB::table('inventario_dispositivos')->where('id', $id)->delete();
+                $dispositivo->delete();
             });
             
             return redirect()->back()->with('success', 'Dispositivo eliminado correctamente.');
             
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al eliminar el dispositivo: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Registrar baja en log (método auxiliar)
+     */
+    private function registrarBajaEnLog($dispositivo, $usuario)
+    {
+        $nombreCompleto = $usuario->nombres . ' ' . ($usuario->apellidos ?? '');
+        $colaboradorNombre = $dispositivo->colaborador ? 
+            $dispositivo->colaborador->nombre . ' ' . $dispositivo->colaborador->apellidos : null;
+
+        DB::table('log_bajas')->insert([
+            'tabla_afectada' => 'inventario_dispositivos',
+            'registro_id' => $dispositivo->id,
+            'usuario_ti_id' => $usuario->id,
+            'usuario_nombre_completo' => $nombreCompleto,
+            'accion' => 'DELETE',
+            'estado_texto' => $dispositivo->estado,
+            'usuario_nombre' => $colaboradorNombre,
+            'marca_id' => $dispositivo->marca_id,
+            'numero_serie' => $dispositivo->numero_serie ?? $dispositivo->serie,
+            'modelo' => $dispositivo->modelo,
+            'mac_address' => $dispositivo->mac,
+            'fecha_ultima_edicion' => $dispositivo->updated_at,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
     }
 
     /**
@@ -279,33 +223,16 @@ class InventarioDispositivoController extends Controller
      */
     public function generarQR($id)
     {
-        $dispositivo = DB::table('inventario_dispositivos')
-            ->leftJoin('tipos_dispositivo', 'inventario_dispositivos.tipo_id', '=', 'tipos_dispositivo.id')
-            ->leftJoin('marcas', 'inventario_dispositivos.marca_id', '=', 'marcas.id')
-            ->leftJoin('colaboradores', 'inventario_dispositivos.colaborador_id', '=', 'colaboradores.id')
-            ->select(
-                'inventario_dispositivos.*',
-                'tipos_dispositivo.nombre as tipo_nombre',
-                'marcas.nombre as marca_nombre',
-                'colaboradores.nombre as colaborador_nombre',
-                'colaboradores.apellidos as colaborador_apellidos'
-            )
-            ->where('inventario_dispositivos.id', $id)
-            ->first();
+     $qrCode = QrCode::create($texto)
+        ->setSize(300)
+        ->setMargin(10)
+        ->setErrorCorrectionLevel(ErrorCorrectionLevel::HIGH);
 
-        if (!$dispositivo) {
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('error', 'Dispositivo no encontrado.');
-        }
+    $writer = new PngWriter();
+    $result = $writer->write($qrCode);
 
-        $qrData = $this->generarDatosQR($dispositivo);
-        
-        // Generar QR como PNG descargable usando Endroid
-        $qrCode = $this->generarQRCode($qrData, 300, 'png');
-
-        return response($qrCode)
-               ->header('Content-Type', 'image/png')
-               ->header('Content-Disposition', 'attachment; filename="qr-dispositivo-'.$dispositivo->id.'.png"');
+    return response($result->getString(), 200)
+            ->header('Content-Type', $result->getMimeType());
     }
 
     /**
@@ -313,24 +240,8 @@ class InventarioDispositivoController extends Controller
      */
     public function qrImprimible($id)
     {
-        $dispositivo = DB::table('inventario_dispositivos')
-            ->leftJoin('tipos_dispositivo', 'inventario_dispositivos.tipo_id', '=', 'tipos_dispositivo.id')
-            ->leftJoin('marcas', 'inventario_dispositivos.marca_id', '=', 'marcas.id')
-            ->leftJoin('colaboradores', 'inventario_dispositivos.colaborador_id', '=', 'colaboradores.id')
-            ->select(
-                'inventario_dispositivos.*',
-                'tipos_dispositivo.nombre as tipo_nombre',
-                'marcas.nombre as marca_nombre',
-                'colaboradores.nombre as colaborador_nombre',
-                'colaboradores.apellidos as colaborador_apellidos'
-            )
-            ->where('inventario_dispositivos.id', $id)
-            ->first();
-
-        if (!$dispositivo) {
-            return redirect()->route('inventario-dispositivos.index')
-                ->with('error', 'Dispositivo no encontrado.');
-        }
+        $dispositivo = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
+            ->findOrFail($id);
 
         $qrData = $this->generarDatosQR($dispositivo);
         $qrCodeSvg = $this->generarQRCode($qrData, 200, 'svg');
@@ -338,30 +249,27 @@ class InventarioDispositivoController extends Controller
         return view('inventario_dispositivos.qr_imprimible', compact('dispositivo', 'qrCodeSvg', 'qrData'));
     }
 
-   /**
- * Función auxiliar para generar QR Code con Endroid v4+
- */
-private function generarQRCode($data, $size = 200, $format = 'png')
-{
-    // Elegir writer según formato
-    $writer = $format === 'svg' ? new SvgWriter() : new PngWriter();
+    /**
+     * Función auxiliar para generar QR Code con Endroid v4+
+     */
+    private function generarQRCode($data, $size = 200, $format = 'png')
+    {
+        $writer = $format === 'svg' ? new SvgWriter() : new PngWriter();
 
-    // Construir el QR usando Builder (API v4+)
-    $result = Builder::create()
-        ->writer($writer)
-        ->data($data)
-        ->size((int)$size)
-        ->margin(10)
-        ->encoding(new Encoding('UTF-8'))
-        ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-        ->foregroundColor(new Color(0, 0, 0))
-        ->backgroundColor(new Color(255, 255, 255))
-        ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
-        ->build();
+        $result = Builder::create()
+            ->writer($writer)
+            ->data($data)
+            ->size((int)$size)
+            ->margin(10)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
+            ->foregroundColor(new Color(0, 0, 0))
+            ->backgroundColor(new Color(255, 255, 255))
+            ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
+            ->build();
 
-    // Retornar el contenido como string
-    return $result->getString();
-}
+        return $result->getString();
+    }
 
     /**
      * Función auxiliar para generar datos del QR
@@ -371,8 +279,8 @@ private function generarQRCode($data, $size = 200, $format = 'png')
         $datos = "INVENTARIO DE DISPOSITIVO\n";
         $datos .= "=======================\n";
         $datos .= "ID: {$dispositivo->id}\n";
-        $datos .= "Tipo: {$dispositivo->tipo_nombre}\n";
-        $datos .= "Marca: {$dispositivo->marca_nombre}\n";
+        $datos .= "Tipo: {$dispositivo->tipo->nombre}\n";
+        $datos .= "Marca: {$dispositivo->marca->nombre}\n";
         $datos .= "Modelo: {$dispositivo->modelo}\n";
         $datos .= "N° Serie: {$dispositivo->numero_serie}\n";
         
@@ -386,8 +294,8 @@ private function generarQRCode($data, $size = 200, $format = 'png')
             $datos .= "MAC: {$dispositivo->mac}\n";
         }
         
-        if ($dispositivo->colaborador_nombre) {
-            $datos .= "Asignado a: {$dispositivo->colaborador_nombre} {$dispositivo->colaborador_apellidos}\n";
+        if ($dispositivo->colaborador) {
+            $datos .= "Asignado a: {$dispositivo->colaborador->nombre} {$dispositivo->colaborador->apellidos}\n";
         } else {
             $datos .= "Asignado a: No asignado\n";
         }
@@ -401,7 +309,7 @@ private function generarQRCode($data, $size = 200, $format = 'png')
             $datos .= "RAM: {$dispositivo->memoria_ram}\n";
         }
         
-        $datos .= "Actualizado: " . \Carbon\Carbon::parse($dispositivo->updated_at)->format('d/m/Y');
+        $datos .= "Actualizado: " . Carbon::parse($dispositivo->updated_at)->format('d/m/Y');
 
         return $datos;
     }

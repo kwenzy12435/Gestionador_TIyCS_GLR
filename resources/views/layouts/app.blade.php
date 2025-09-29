@@ -16,6 +16,7 @@
 
     @yield('styles')
 
+    <!-- CSRF token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
@@ -90,8 +91,7 @@
                         @csrf
                         @method('PUT')
                         <div class="modal-body">
-                            <input type="hidden" name="user_id" value="{{ auth()->id() }}">
-
+                            <!-- no es necesario enviar user_id si el controlador usa auth()->id() -->
                             <div class="mb-3">
                                 <label for="usuario" class="form-label">Nuevo Usuario *</label>
                                 <input type="text" class="form-control @error('usuario') is-invalid @enderror"

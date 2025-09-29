@@ -42,7 +42,7 @@ class ReporteActividadController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'fecha' => 'required|date',
             'colaborador_id' => 'nullable|exists:colaboradores,id',
             'actividad' => 'required|string|max:255',
@@ -52,7 +52,8 @@ class ReporteActividadController extends Controller
             'usuario_ti_id' => 'nullable|exists:usuarios_ti,id'
         ]);
 
-        ReporteActividad::create($request->all());
+        
+        ReporteActividad::create($validated);
 
         return redirect()->route('reporte_actividades.index')
             ->with('success', 'Reporte de actividad creado exitosamente.');
@@ -90,7 +91,7 @@ class ReporteActividadController extends Controller
     {
         $reporte = ReporteActividad::findOrFail($id);
         
-        $request->validate([
+        $validated = $request->validate([
             'fecha' => 'required|date',
             'colaborador_id' => 'nullable|exists:colaboradores,id',
             'actividad' => 'required|string|max:255',
@@ -100,7 +101,8 @@ class ReporteActividadController extends Controller
             'usuario_ti_id' => 'nullable|exists:usuarios_ti,id'
         ]);
 
-        $reporte->update($request->all());
+       
+        $reporte->update($validated);
 
         return redirect()->route('reporte_actividades.index')
             ->with('success', 'Reporte de actividad actualizado exitosamente.');

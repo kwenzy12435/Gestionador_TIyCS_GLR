@@ -11,12 +11,12 @@ class UsuarioTIController extends Controller
     public function index()
     {
         $usuarios = UsuarioTI::all();
-        return view('usuarios-ti.index', compact('usuarios')); // ✅ CORREGIDO
+        return view('usuarios-ti.index', compact('usuarios'));
     }
 
     public function create()
     {
-        return view('usuarios-ti.create'); // ✅ CORREGIDO
+        return view('usuarios-ti.create'); 
     }
 
     public function store(Request $request)
@@ -28,7 +28,17 @@ class UsuarioTIController extends Controller
             'puesto' => 'nullable|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'rol' => 'required|in:ADMIN,AUXILIAR-TI,PERSONAL-TI',
-            'contrasena' => 'required|string|min:6|confirmed'
+            'contrasena' => [
+                'required', 
+                'string', 
+                'min:8', 
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+            ]
+        ], [
+            'contrasena.regex' => 'La contraseña debe contener al menos una letra minúscula, una letra mayúscula y un número.',
+            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'contrasena.confirmed' => 'La confirmación de la contraseña no coincide.',
         ]);
 
         UsuarioTI::create([
@@ -45,19 +55,19 @@ class UsuarioTIController extends Controller
             ->with('success', 'Usuario TI creado exitosamente.');
     }
 
-    public function show($id) // ✅ CAMBIAR a parámetro simple
+    public function show($id) 
     {
         $usuarioTI = UsuarioTI::findOrFail($id);
-        return view('usuarios-ti.show', compact('usuarioTI')); // ✅ CORREGIDO
+        return view('usuarios-ti.show', compact('usuarioTI')); 
     }
 
-    public function edit($id) // ✅ CAMBIAR a parámetro simple
+    public function edit($id) 
     {
         $usuarioTI = UsuarioTI::findOrFail($id);
-        return view('usuarios-ti.edit', compact('usuarioTI')); // ✅ CORREGIDO
+        return view('usuarios-ti.edit', compact('usuarioTI')); 
     }
 
-    public function update(Request $request, $id) // ✅ CAMBIAR a parámetro simple
+    public function update(Request $request, UsuarioTI $usuarioTI) 
     {
         $usuarioTI = UsuarioTI::findOrFail($id);
         
@@ -68,7 +78,17 @@ class UsuarioTIController extends Controller
             'puesto' => 'nullable|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'rol' => 'required|in:ADMIN,AUXILIAR-TI,PERSONAL-TI',
-            'contrasena' => 'nullable|string|min:6|confirmed'
+            'contrasena' => [
+                'required', 
+                'string', 
+                'min:8', 
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+            ]
+        ], [
+            'contrasena.regex' => 'La contraseña debe contener al menos una letra minúscula, una letra mayúscula y un número.',
+            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'contrasena.confirmed' => 'La confirmación de la contraseña no coincide.',
         ]);
 
         $data = [
@@ -95,7 +115,7 @@ class UsuarioTIController extends Controller
         try {
             $usuarioTI = UsuarioTI::findOrFail($id);
             
-            // Prevenir auto-eliminación
+           
             if ($usuarioTI->id === auth()->id()) {
                 return redirect()->route('usuarios-ti.index')
                     ->with('error', 'No puedes eliminar tu propio usuario.');
@@ -111,32 +131,35 @@ class UsuarioTIController extends Controller
                 ->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
         }
     }
+
     public function actualizarCredenciales(Request $request)
-{
-    $usuario = UsuarioTI::findOrFail(auth()->id());
-    
-    $request->validate([
-        'usuario' => 'required|string|max:100|unique:usuarios_ti,usuario,' . $usuario->id,
-        'contrasena_actual' => 'required',
-        'nueva_contrasena' => 'nullable|min:6|confirmed'
-    ]);
+    {
+        try {
+            $usuario = UsuarioTI::findOrFail(auth()->id());
+            
+            $request->validate([
+                'usuario' => 'required|string|max:100|unique:usuarios_ti,usuario,' . $usuario->id,
+                'contrasena_actual' => 'required',
+                'nueva_contrasena' => 'nullable|min:8|confirmed|different:contrasena_actual'
+            ]);
 
-    // Verificar contraseña actual
-    if (!Hash::check($request->contrasena_actual, $usuario->contrasena)) {
-        return back()->withErrors(['contrasena_actual' => 'La contraseña actual es incorrecta.']);
-    }
+            if (!Hash::check($request->contrasena_actual, $usuario->contrasena)) {
+                return back()->withErrors(['contrasena_actual' => 'La contraseña actual es incorrecta.']);
+            }
 
-    // Preparar datos para actualizar
-    $data = ['usuario' => $request->usuario];
-    
-    // Actualizar contraseña si se proporcionó una nueva
-    if ($request->filled('nueva_contrasena')) {
-        $data['contrasena'] = Hash::make($request->nueva_contrasena);
-    }
+            $data = ['usuario' => $request->usuario];
+            
+            if ($request->filled('nueva_contrasena')) {
+                $data['contrasena'] = Hash::make($request->nueva_contrasena);
+            }
 
-    $usuario->update($data);
+            $usuario->update($data);
 
-    return redirect()->route('dashboard')
-        ->with('success', 'Tus credenciales se actualizaron correctamente.');
+            return redirect()->route('dashboard')
+                ->with('success', 'Tus credenciales se actualizaron correctamente.');
+                
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al actualizar credenciales: ' . $e->getMessage());
+        }
     }
 }
