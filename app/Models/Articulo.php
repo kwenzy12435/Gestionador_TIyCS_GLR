@@ -27,4 +27,15 @@ class Articulo extends Model
         'fecha_ingreso' => 'date',
         'cantidad' => 'integer'
     ];
+
+    
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class, 'categoria_id');
+    }
+
+    public function subcategoria()
+    {
+        return $this->belongsTo(Subcategoria::class, 'subcategoria_id');
+    }
 }

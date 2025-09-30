@@ -69,6 +69,14 @@
                     <a href="{{ route('admin.configsistem.index') }}" class="btn btn-outline-dark btn-sm">
                         <i class="fas fa-cog me-1"></i>Configuración
                     </a>
+                    @can('create', App\Models\BitacoraRespaldo::class)
+    <a href="{{ route('bitacora_respaldo.create') }}" class="btn btn-primary">
+        Crear Nueva Bitácora
+    </a>
+@endcan
+<a href="{{ route('articulos.index') }}" class="btn btn-primary">
+    Ver Artículos
+</a>
                    <a href="{{ route('monitoreo-red.index') }}" class="btn btn-primary">
                      Monitoreo de Red
                     </a>

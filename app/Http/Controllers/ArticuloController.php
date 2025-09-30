@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Articulo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ArticuloController extends Controller
 {
@@ -15,9 +16,9 @@ class ArticuloController extends Controller
 
     public function create()
     {
-        $categorias = \DB::table('categorias')->orderBy('nombre')->get();
-        $subcategorias = \DB::table('subcategorias')->orderBy('nombre')->get();
-        
+        $categorias = DB::table('categorias')->orderBy('nombre')->get();
+        $subcategorias = DB::table('subcategorias')->orderBy('nombre')->get();
+
         return view('Articulos.create', compact('categorias', 'subcategorias'));
     }
 
@@ -44,25 +45,25 @@ class ArticuloController extends Controller
     public function show($id)
     {
         $articulo = Articulo::findOrFail($id);
-        $categoria = \DB::table('categorias')->where('id', $articulo->categoria_id)->first();
-        $subcategoria = $articulo->subcategoria_id ? \DB::table('subcategorias')->where('id', $articulo->subcategoria_id)->first() : null;
-        
+        $categoria = DB::table('categorias')->where('id', $articulo->categoria_id)->first();
+        $subcategoria = $articulo->subcategoria_id ? DB::table('subcategorias')->where('id', $articulo->subcategoria_id)->first() : null;
+
         return view('Articulos.show', compact('articulo', 'categoria', 'subcategoria'));
     }
 
     public function edit($id)
     {
         $articulo = Articulo::findOrFail($id);
-        $categorias = \DB::table('categorias')->orderBy('nombre')->get();
-        $subcategorias = \DB::table('subcategorias')->orderBy('nombre')->get();
-        
+        $categorias = DB::table('categorias')->orderBy('nombre')->get();
+        $subcategorias = DB::table('subcategorias')->orderBy('nombre')->get();
+
         return view('Articulos.edit', compact('articulo', 'categorias', 'subcategorias'));
     }
 
     public function update(Request $request, $id)
     {
         $articulo = Articulo::findOrFail($id);
-        
+
         $validated = $request->validate([
             'categoria_id' => 'required|exists:categorias,id',
             'subcategoria_id' => 'nullable|exists:subcategorias,id',
