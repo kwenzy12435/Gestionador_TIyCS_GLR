@@ -28,10 +28,7 @@
                        class="btn btn-info me-2" title="Descargar QR">
                         <i class="fas fa-download me-2"></i>Descargar QR
                     </a>
-                    <a href="{{ route('inventario-dispositivos.qr.imprimible', $dispositivo->id) }}" 
-                       class="btn btn-success me-2" title="QR Imprimible" target="_blank">
-                        <i class="fas fa-print me-2"></i>QR Imprimible
-                    </a>
+                    
                     <a href="{{ route('inventario-dispositivos.edit', $dispositivo->id) }}" class="btn btn-warning me-2">
                         <i class="fas fa-edit me-2"></i>Editar
                     </a>
@@ -50,12 +47,16 @@
                         </div>
                         <div class="card-body text-center">
                             <div class="mb-3">
-                                {!! $qrCodeSvg !!}
+                              
+                                <img src="{{ $qrCodeBase64 }}" 
+                                     alt="QR Code del dispositivo" 
+                                     style="width: 150px; height: 150px;"
+                                     class="img-fluid">
                             </div>
                             <small class="text-muted">Escanea para ver información del dispositivo</small>
                             <div class="mt-2">
                                 <a href="{{ route('inventario-dispositivos.qr.descargar', $dispositivo->id) }}" 
-                                   class="btn btn-sm btn-outline-primary btn-block">
+                                   class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-download me-1"></i>Descargar
                                 </a>
                             </div>
@@ -72,20 +73,24 @@
                                     <h5>Información General</h5>
                                     <table class="table table-bordered">
                                         <tr>
+                                            <th>ID:</th>
+                                            <td>{{ $dispositivo->id }}</td>
+                                        </tr>
+                                        <tr>
                                             <th>Modelo:</th>
-                                            <td>{{ $dispositivo->modelo }}</td>
+                                            <td>{{ $dispositivo->modelo ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
                                             <th>Marca:</th>
-                                            <td>{{ $dispositivo->marca_nombre ?? 'N/A' }}</td>
+                                            <td>{{ $dispositivo->marca->nombre ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
                                             <th>Tipo:</th>
-                                            <td>{{ $dispositivo->tipo_nombre ?? 'N/A' }}</td>
+                                            <td>{{ $dispositivo->tipo->nombre ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
                                             <th>Número de Serie:</th>
-                                            <td>{{ $dispositivo->numero_serie }}</td>
+                                            <td>{{ $dispositivo->numero_serie ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
                                             <th>Serie:</th>
@@ -146,11 +151,23 @@
                                         </tr>
                                         <tr>
                                             <th>Fecha de Compra:</th>
-                                            <td>{{ $dispositivo->fecha_compra ? \Carbon\Carbon::parse($dispositivo->fecha_compra)->format('d/m/Y') : 'N/A' }}</td>
+                                            <td>
+                                                @if($dispositivo->fecha_compra)
+                                                    {{ \Carbon\Carbon::parse($dispositivo->fecha_compra)->format('d/m/Y') }}
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>Garantía hasta:</th>
-                                            <td>{{ $dispositivo->garantia_hasta ? \Carbon\Carbon::parse($dispositivo->garantia_hasta)->format('d/m/Y') : 'N/A' }}</td>
+                                            <td>
+                                                @if($dispositivo->garantia_hasta)
+                                                    {{ \Carbon\Carbon::parse($dispositivo->garantia_hasta)->format('d/m/Y') }}
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
                                         </tr>
                                     </table>
                                 </div>
@@ -160,10 +177,10 @@
                                         <tr>
                                             <th>Asignado a:</th>
                                             <td>
-                                                @if($dispositivo->colaborador_nombre)
-                                                    {{ $dispositivo->colaborador_nombre }} {{ $dispositivo->colaborador_apellidos }}
-                                                    @if($dispositivo->colaborador_puesto)
-                                                        ({{ $dispositivo->colaborador_puesto }})
+                                                @if($dispositivo->colaborador)
+                                                    {{ $dispositivo->colaborador->nombre ?? '' }} {{ $dispositivo->colaborador->apellidos ?? '' }}
+                                                    @if($dispositivo->colaborador->puesto ?? false)
+                                                        ({{ $dispositivo->colaborador->puesto }})
                                                     @endif
                                                 @else
                                                     No asignado

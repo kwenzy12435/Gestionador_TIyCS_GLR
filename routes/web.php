@@ -54,8 +54,8 @@ Route::middleware('auth')->group(function () {
         ->parameters(['colaboradores' => 'id']);
 
     // Rutas para QR 
-    Route::get('/inventario-dispositivos/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])->name('inventario-dispositivos.qr.descargar');
-    Route::get('/inventario-dispositivos/{id}/qr-imprimible', [InventarioDispositivoController::class, 'qrImprimible'])->name('inventario-dispositivos.qr.imprimible');
+     Route::get('/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])
+         ->name('inventario-dispositivos.qr.descargar');
 
     // Rutas para inventario de dispositivos
     Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
