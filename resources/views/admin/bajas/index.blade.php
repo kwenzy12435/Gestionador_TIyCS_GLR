@@ -12,11 +12,7 @@
                         <h4 class="mb-0">
                             <i class="fas fa-history me-2"></i>Historial de Bajas de Dispositivos
                         </h4>
-                        <div>
-                            <a href="{{ route('admin.bajas.export.pdf') }}" class="btn btn-light btn-sm">
-                                <i class="fas fa-file-pdf me-1"></i>Exportar PDF
-                            </a>
-                        </div>
+                       
                     </div>
                 </div>
 

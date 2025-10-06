@@ -1,34 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Usuarios TI - Sistema de Gestión TI')
-
+@section('title', 'Licencias - Sistema de Gestión TI')
+  @vite(['resources/js/licencias.js'])
 @section('content')
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             <i class="fas fa-server me-2"></i>Sistema Gestión TI
         </a>
-        <div class="navbar-nav ms-auto">
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user me-1"></i> {{ auth()->user()->nombres }}
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
-                        <i class="fas fa-cog me-2"></i>Configuración
-                    </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="dropdown-item">
-                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
     </div>
 </nav>
 
@@ -36,111 +15,130 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 bg-light sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('dashboard') }}">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                </a>
-                <a class="nav-link active" href="{{ route('usuarios-ti.index') }}">
-                    <i class="fas fa-users me-2"></i>Usuarios TI
-                </a>
-                <a class="nav-link" href="{{ route('articulos.index') }}">
-                    <i class="fas fa-boxes me-2"></i>Artículos
-                </a>
-            </nav>
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('usuarios-ti.index') }}">
+                            <i class="fas fa-users me-2"></i>Usuarios TI
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('colaboradores.index') }}">
+                            <i class="fas fa-user-friends me-2"></i>Colaboradores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('inventario-dispositivos.index') }}">
+                            <i class="fas fa-laptop me-2"></i>Inventario
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ route('licencias.index') }}">
+                            <i class="fas fa-key me-2"></i>Licencias
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="fas fa-users me-2"></i>Gestión de Usuarios TI
-                </h1>
-                @if(auth()->user()->rol === 'ADMIN')
-                <a href="{{ route('usuarios-ti.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Nuevo Usuario
+                <h1 class="h2">Gestión de Licencias</h1>
+                <a href="{{ route('licencias.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Nueva Licencia
                 </a>
-                @endif
             </div>
 
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                    {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
 
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                    {{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
 
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-list me-2"></i>Lista de Usuarios
-                    </h5>
+            <!-- Modal para confirmar contraseña -->
+            <div class="modal fade" id="passwordModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmar Contraseña</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Por seguridad, ingrese su contraseña para continuar:</p>
+                            <input type="password" id="passwordInput" class="form-control" placeholder="Contraseña">
+                            <div id="passwordError" class="text-danger mt-2" style="display: none;"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmar</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
-                            <thead class="table-dark">
+                            <thead>
                                 <tr>
-                                    <th>Usuario</th>
-                                    <th>Nombre Completo</th>
-                                    <th>Puesto</th>
-                                    <th>Teléfono</th>
-                                    <th>Rol</th>
+                                    <th>Cuenta</th>
+                                    <th>Plataforma</th>
+                                    <th>Colaborador</th>
+                                    <th>Expiración</th>
+                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($usuarios as $usuario)
+                                @foreach($licencias as $licencia)
                                 <tr>
+                                    <td>{{ $licencia->cuenta }}</td>
+                                    <td>{{ $licencia->plataforma->nombre ?? 'N/A' }}</td>
                                     <td>
-                                        <strong>{{ $usuario->usuario }}</strong>
-                                        @if($usuario->id === auth()->id())
-                                            <span class="badge bg-info ms-1">Tú</span>
+                                        @if($licencia->colaborador)
+                                            {{ $licencia->colaborador->nombre }} {{ $licencia->colaborador->apellidos }}
+                                        @else
+                                            Sin asignar
                                         @endif
                                     </td>
-                                    <td>{{ $usuario->nombres }} {{ $usuario->apellidos }}</td>
-                                    <td>{{ $usuario->puesto ?? 'No especificado' }}</td>
-                                    <td>{{ $usuario->telefono ?? 'No especificado' }}</td>
+                                    <td>{{ $licencia->expiracion ? $licencia->expiracion->format('d/m/Y') : 'N/A' }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $usuario->rol == 'ADMIN' ? 'danger' : ($usuario->rol == 'AUXILIAR-TI' ? 'warning' : 'primary') }}">
-                                            {{ $usuario->rol }}
-                                        </span>
+                                        @if($licencia->expiracion && $licencia->expiracion->isPast())
+                                            <span class="badge bg-danger">Expirada</span>
+                                        @elseif($licencia->expiracion && $licencia->expiracion->diffInDays(now()) <= 30)
+                                            <span class="badge bg-warning">Por expirar</span>
+                                        @else
+                                            <span class="badge bg-success">Activa</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('usuarios-ti.show', $usuario) }}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('usuarios-ti.edit', $usuario) }}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            @if(auth()->user()->rol === 'ADMIN' && $usuario->id !== auth()->id())
-                                            <form action="{{ route('usuarios-ti.destroy', $usuario) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" 
-                                                    onclick="return confirm('¿Estás seguro de eliminar a {{ $usuario->nombres }}?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                            @endif
-                                        </div>
+                                        <a href="{{ route('licencias.show', $licencia->id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-warning btn-editar" data-id="{{ $licencia->id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btn-eliminar" data-id="{{ $licencia->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="fas fa-users fa-2x mb-3"></i>
-                                        <p>No hay usuarios registrados</p>
-                                    </td>
-                                </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -149,8 +147,9 @@
         </main>
     </div>
 </div>
-@endsection
 
-@section('styles')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 @endsection

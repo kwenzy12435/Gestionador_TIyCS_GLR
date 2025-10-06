@@ -1,7 +1,6 @@
 @extends('layouts.app')
-
-@section('title', 'Detalle Usuario TI - Sistema de Gestión TI')
-
+@section('title','Detalle Licencia')
+  @vite(['resources/js/licencias.js'])
 @section('content')
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
@@ -15,90 +14,124 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 bg-light sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('dashboard') }}">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                </a>
-                <a class="nav-link active" href="{{ route('usuarios-ti.index') }}">
-                    <i class="fas fa-users me-2"></i>Usuarios TI
-                </a>
-                <a class="nav-link" href="{{ route('articulos.index') }}">
-                    <i class="fas fa-boxes me-2"></i>Artículos
-                </a>
-            </nav>
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('usuarios-ti.index') }}">
+                            <i class="fas fa-users me-2"></i>Usuarios TI
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('colaboradores.index') }}">
+                            <i class="fas fa-user-friends me-2"></i>Colaboradores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('inventario-dispositivos.index') }}">
+                            <i class="fas fa-laptop me-2"></i>Inventario
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ route('licencias.index') }}">
+                            <i class="fas fa-key me-2"></i>Licencias
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="fas fa-user-circle me-2"></i>Detalle del Usuario
-                </h1>
+                <h1 class="h2">Detalle de Licencia</h1>
                 <div>
-                    <a href="{{ route('usuarios-ti.index') }}" class="btn btn-secondary me-2">
-                        <i class="fas fa-arrow-left me-2"></i>Volver
-                    </a>
-                    <a href="{{ route('usuarios-ti.edit', $usuarioTI) }}" class="btn btn-warning">
+                    <button class="btn btn-warning me-2" id="btnEditar">
                         <i class="fas fa-edit me-2"></i>Editar
+                    </button>
+                    <button class="btn btn-danger me-2" id="btnEliminar">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                    <a href="{{ route('licencias.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
                     </a>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <div class="avatar bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                                 style="width: 80px; height: 80px; font-size: 2rem;">
-                                <i class="fas fa-user text-white"></i>
-                            </div>
-                            <h4 class="card-title">{{ $usuarioTI->nombres }} {{ $usuarioTI->apellidos }}</h4>
-                            <span class="badge bg-{{ $usuarioTI->rol == 'ADMIN' ? 'danger' : ($usuarioTI->rol == 'AUXILIAR-TI' ? 'warning' : 'primary') }} fs-6">
-                                {{ $usuarioTI->rol }}
-                            </span>
-                            <p class="text-muted mt-2">{{ $usuarioTI->puesto ?? 'Puesto no especificado' }}</p>
+            <!-- Modal para confirmar contraseña -->
+            <div class="modal fade" id="passwordModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmar Contraseña</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Por seguridad, ingrese su contraseña para continuar:</p>
+                            <input type="password" id="passwordInput" class="form-control" placeholder="Contraseña">
+                            <div id="passwordError" class="text-danger mt-2" style="display: none;"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmar</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2"></i>Información Detallada
-                            </h5>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Cuenta:</th>
+                                    <td>{{ $licencia->cuenta }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Contraseña:</th>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="passwordField" value="{{ $licencia->contrasena }}" readonly>
+                                            <button type="button" class="btn btn-outline-secondary" id="btnTogglePassword">
+                                                <i class="fas fa-eye" id="passwordIcon"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Plataforma:</th>
+                                    <td>{{ $licencia->plataforma->nombre ?? 'N/A' }}</td>
+                                </tr>
+                            </table>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-user me-2"></i>Usuario:</strong>
-                                    <p class="mt-1">{{ $usuarioTI->usuario }}</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-id-card me-2"></i>Nombre Completo:</strong>
-                                    <p class="mt-1">{{ $usuarioTI->nombres }} {{ $usuarioTI->apellidos }}</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-briefcase me-2"></i>Puesto:</strong>
-                                    <p class="mt-1">{{ $usuarioTI->puesto ?? 'No especificado' }}</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-phone me-2"></i>Teléfono:</strong>
-                                    <p class="mt-1">{{ $usuarioTI->telefono ?? 'No especificado' }}</p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-shield-alt me-2"></i>Rol:</strong>
-                                    <p class="mt-1">
-                                        <span class="badge bg-{{ $usuarioTI->rol == 'ADMIN' ? 'danger' : ($usuarioTI->rol == 'AUXILIAR-TI' ? 'warning' : 'primary') }}">
-                                            {{ $usuarioTI->rol }}
-                                        </span>
-                                    </p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong><i class="fas fa-calendar me-2"></i>Fecha de Registro:</strong>
-                                    <p class="mt-1">{{ $usuarioTI->created_at->format('d/m/Y H:i') }}</p>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Colaborador:</th>
+                                    <td>{{ $licencia->colaborador ? $licencia->colaborador->nombre.' '.$licencia->colaborador->apellidos : 'Sin asignar' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Expiración:</th>
+                                    <td>{{ $licencia->expiracion ? $licencia->expiracion->format('d/m/Y') : 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estado:</th>
+                                    <td>
+                                        @if($licencia->expiracion && $licencia->expiracion->isPast())
+                                            <span class="badge bg-danger">Expirada</span>
+                                        @elseif($licencia->expiracion && $licencia->expiracion->diffInDays(now()) <= 30)
+                                            <span class="badge bg-warning">Por expirar</span>
+                                        @else
+                                            <span class="badge bg-success">Activa</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -106,4 +139,9 @@
         </main>
     </div>
 </div>
+
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 @endsection

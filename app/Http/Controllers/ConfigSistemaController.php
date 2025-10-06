@@ -92,9 +92,15 @@ class ConfigSistemaController extends Controller
         }
 
         $modelo = $this->modelos[$tabla];
-        $modelo::create($request->all());
+        
+        $datos = ['nombre' => $request->nombre];
+        if ($tabla === 'subcategorias') {
+            $datos['categoria_id'] = $request->categoria_id;
+        }
+        
+        $modelo::create($datos);
 
-        return redirect()->route('admin.configsistem.index', $tabla)
+        return redirect()->route('admin.configsistem.index.tabla', $tabla)
             ->with('success', 'Registro creado correctamente.');
     }
 
@@ -104,7 +110,10 @@ class ConfigSistemaController extends Controller
             abort(404);
         }
 
-        // Validaciones específicas para cada tabla
+        $modelo = $this->modelos[$tabla];
+        $registro = $modelo::findOrFail($id);
+
+        // Validaciones específicas
         if ($tabla === 'subcategorias') {
             $request->validate([
                 'categoria_id' => 'required|exists:categorias,id',
@@ -116,11 +125,14 @@ class ConfigSistemaController extends Controller
             ]);
         }
 
-        $modelo = $this->modelos[$tabla];
-        $registro = $modelo::findOrFail($id);
-        $registro->update($request->all());
+        $datos = ['nombre' => $request->nombre];
+        if ($tabla === 'subcategorias') {
+            $datos['categoria_id'] = $request->categoria_id;
+        }
+        
+        $registro->update($datos);
 
-        return redirect()->route('admin.configsistem.index', $tabla)
+        return redirect()->route('admin.configsistem.index.tabla', $tabla)
             ->with('success', 'Registro actualizado correctamente.');
     }
 
@@ -134,7 +146,13 @@ class ConfigSistemaController extends Controller
         $registro = $modelo::findOrFail($id);
         $registro->delete();
 
-        return redirect()->route('admin.configsistem.index', $tabla)
+        return redirect()->route('admin.configsistem.index.tabla', $tabla)
             ->with('success', 'Registro eliminado correctamente.');
+    }
+
+    // Método auxiliar para obtener modelo
+    private function obtenerModelo($tabla)
+    {
+        return $this->modelos[$tabla] ?? null;
     }
 }

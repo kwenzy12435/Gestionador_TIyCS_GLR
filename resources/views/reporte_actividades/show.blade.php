@@ -3,13 +3,7 @@
 @section('title', 'Detalle Reporte - Sistema de Gestión TI')
 
 @section('content')
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <i class="fas fa-server me-2"></i>Sistema Gestión TI
-        </a>
-    </div>
-</nav>
+
 
 <div class="container-fluid">
     <div class="row">

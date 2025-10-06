@@ -11,99 +11,94 @@ use App\Http\Controllers\BitacoraRespaldoController;
 use App\Http\Controllers\ArticuloController;
 use App\Http\Controllers\MonitoreoRedController;
 use App\Http\Controllers\ConfigSistemaController;
-use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\LogBajasController;
-
-
 
 // Redirección principal DIRECTA al login
 Route::get('/', function () {
     return redirect('/login');
 });
 
-// Rutas protegidas
-Route::middleware('auth')->group(function () {
-    // Todas las rutas que requieren autenticación
-});
-
 // Rutas de autenticación (públicas)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::put('/usuarios-ti/actualizar-credenciales', [UsuarioTIController::class, 'actualizarCredenciales'])->name('usuarios-ti.actualizar-credenciales');
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware('auth')->group(function () {
     
-    // Dashboard - Solo accesible después del login
+    // Dashboard
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
     
-    // Ruta para el perfil del usuario actual
+    // Perfil de usuario
     Route::get('/profile', function () {
         return redirect()->route('usuarios-ti.edit', auth()->id());
     })->name('profile.edit');
 
-    // Rutas del CRUD de Usuarios TI
+    // Actualización de credenciales
+    Route::put('/usuarios-ti/actualizar-credenciales', [UsuarioTIController::class, 'actualizarCredenciales'])
+        ->name('usuarios-ti.actualizar-credenciales');
+
+    // CRUD de Usuarios TI
     Route::resource('usuarios-ti', UsuarioTIController::class);
 
-    // Rutas para inventario de colaboradores
+    // CRUD de Colaboradores
     Route::resource('colaboradores', ColaboradorController::class)
         ->names('colaboradores')
         ->parameters(['colaboradores' => 'id']);
 
-    // Rutas para QR 
-     Route::get('/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])
-         ->name('inventario-dispositivos.qr.descargar');
-
-    // Rutas para inventario de dispositivos
+    // CRUD de Inventario de Dispositivos
     Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
         ->parameters(['inventario-dispositivos' => 'id'])
         ->names('inventario-dispositivos');
 
-    // Rutas para licencias
+    // Generar QR para dispositivos
+    Route::get('inventario-dispositivos/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])
+        ->name('inventario-dispositivos.qr.descargar');
+
+    // CRUD de Licencias con rutas adicionales de seguridad
     Route::resource('licencias', LicenciaController::class);
     
-    Route::post('/confirmar-password', [LicenciaController::class, 'confirmarPassword'])->name('confirmar-password');
+    // Rutas de confirmación de contraseña para licencias
+    Route::post('/licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
+        ->name('licencias.confirmar-password')
+        ->middleware('throttle:10,1');
+    
+    // Rutas para visualización de contraseñas de licencias
     Route::get('licencias/{id}/ver-contrasena', [LicenciaController::class, 'verContrasena'])
-    ->name('licencias.ver-contrasena');
+        ->name('licencias.ver-contrasena');
     
     Route::post('licencias/{id}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])
-    ->name('licencias.procesar-ver-contrasena');
+        ->name('licencias.procesar-ver-contrasena');
 
     Route::post('licencias/{id}/revelar-contrasena', [LicenciaController::class, 'revelarContrasena'])
-    ->name('licencias.revelar-contrasena');
+        ->name('licencias.revelar-contrasena');
 
-    Route::post('licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
-    ->name('licencias.confirmar-password')
-    ->middleware('throttle:10,1');
-
-    // Rutas para reporte de actividades
+    // CRUD de Reportes de Actividades
     Route::resource('reporte_actividades', ReporteActividadController::class)
         ->parameters(['reporte_actividades' => 'id'])
         ->names('reporte_actividades');
 
-    // Rutas para bitacora respaldos contpaq
+    // CRUD de Bitácora de Respaldos
     Route::resource('bitacora_respaldo', BitacoraRespaldoController::class)
         ->names('bitacora_respaldo');
 
-    // Rutas para articulos
+    // CRUD de Artículos
     Route::resource('articulos', ArticuloController::class);
 
-    // Rutas para monitoreo de red
+    // CRUD de Monitoreo de Red
     Route::resource('monitoreo-red', MonitoreoRedController::class);
 
-    // Rutas para configuración del sistema
-    Route::prefix('admin/configsistem')->group(function () {
-        Route::get('/', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index');
-        Route::get('/{tabla}', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index.tabla');
-        Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])->name('admin.configsistem.store');
-        Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])->name('admin.configsistem.update');
-        Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])->name('admin.configsistem.destroy');
-    });
-
-    // Rutas para el historial de bajas
+    // Configuración del Sistema (Admin)
+   Route::prefix('admin/configsistem')->group(function () {
+    Route::get('/', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index');
+    Route::get('/{tabla}', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index.tabla');
+    Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])->name('admin.configsistem.store');
+    Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])->name('admin.configsistem.update');
+    Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])->name('admin.configsistem.destroy');
+})->middleware('auth');
+    // Historial de Bajas (Admin)
     Route::prefix('admin')->group(function () {
         Route::get('/bajas', [LogBajasController::class, 'index'])->name('admin.bajas.index');
         Route::get('/bajas/buscar', [LogBajasController::class, 'search'])->name('admin.bajas.search');

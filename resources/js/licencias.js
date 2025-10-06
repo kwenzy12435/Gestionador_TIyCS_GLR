@@ -102,38 +102,41 @@ class LicenciasManager {
     }
 
     async confirmarPassword() {
-        const input = document.getElementById('passwordInput');
-        const errorDiv = document.getElementById('passwordError');
-        
-        if (!input || !errorDiv) return;
-        
-        const password = input.value.trim();
-        
-        if (!password) {
-            this.mostrarError('Ingrese su contraseña');
-            return;
-        }
+    const input = document.getElementById('passwordInput');
+    const errorDiv = document.getElementById('passwordError');
+    
+    if (!input || !errorDiv) return;
+    
+    const password = input.value.trim();
+    
+    if (!password) {
+        this.mostrarError('Ingrese su contraseña');
+        return;
+    }
 
-        try {
-        const response = await fetch('/confirmar-password', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': this.getCsrfToken()
-    },
-    body: JSON.stringify({ password })
-});
-            const data = await response.json();
+    try {
+        // SOLUCIÓN: Usar la ruta correcta
+        const response = await fetch('/licencias/confirmar-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': this.getCsrfToken(),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
 
-            if (data.success) {
-                this.ejecutarAccion();
-            } else {
-                this.mostrarError(data.message || 'Contraseña incorrecta');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.mostrarError('Error de conexión');
+        const data = await response.json();
+
+        if (data.success) {
+            this.ejecutarAccion();
+        } else {
+            this.mostrarError(data.message || 'Contraseña incorrecta');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        this.mostrarError('Error de conexión con el servidor');
+    }
     }
 
     ejecutarAccion() {
