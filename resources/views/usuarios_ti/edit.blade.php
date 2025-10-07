@@ -3,7 +3,13 @@
 @section('title', 'Editar Usuario TI - Sistema de Gestión TI')
 
 @section('content')
-
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ route('dashboard') }}">
+            <i class="fas fa-server me-2"></i>Sistema Gestión TI
+        </a>
+    </div>
+</nav>
 
 <div class="container-fluid">
     <div class="row">
@@ -27,10 +33,10 @@
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                 <h1 class="h2">
                     <i class="fas fa-user-edit me-2"></i>
-                    @if($usuarioTI->id === auth()->id())
+                    @if($usuarios_ti->id === auth()->id())  <!-- CAMBIADO -->
                         Mi Perfil
                     @else
-                        Editar Usuario: {{ $usuarioTI->nombres }}
+                        Editar Usuario: {{ $usuarios_ti->nombres }}  <!-- CAMBIADO -->
                     @endif
                 </h1>
                 <a href="{{ route('usuarios-ti.index') }}" class="btn btn-secondary">
@@ -45,7 +51,8 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('usuarios-ti.update', $usuarioTI) }}" method="POST">
+                    <!-- CAMBIO IMPORTANTE: usar $usuarios_ti en el route -->
+                    <form action="{{ route('usuarios-ti.update', $usuarios_ti) }}" method="POST">  <!-- CAMBIADO -->
                         @csrf
                         @method('PUT')
                         
@@ -53,7 +60,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="usuario" class="form-label">Usuario *</label>
                                 <input type="text" class="form-control @error('usuario') is-invalid @enderror" 
-                                       id="usuario" name="usuario" value="{{ old('usuario', $usuarioTI->usuario) }}" required>
+                                       id="usuario" name="usuario" value="{{ old('usuario', $usuarios_ti->usuario) }}" required>  <!-- CAMBIADO -->
                                 @error('usuario')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -62,14 +69,14 @@
                             <div class="col-md-6 mb-3">
                                 <label for="rol" class="form-label">Rol *</label>
                                 <select class="form-select @error('rol') is-invalid @enderror" id="rol" name="rol" required
-                                    {{ $usuarioTI->id === auth()->id() ? 'disabled' : '' }}>
+                                    {{ $usuarios_ti->id === auth()->id() ? 'disabled' : '' }}>  <!-- CAMBIADO -->
                                     <option value="">Seleccionar rol</option>
-                                    <option value="ADMIN" {{ old('rol', $usuarioTI->rol) == 'ADMIN' ? 'selected' : '' }}>Administrador</option>
-                                    <option value="AUXILIAR-TI" {{ old('rol', $usuarioTI->rol) == 'AUXILIAR-TI' ? 'selected' : '' }}>Auxiliar TI</option>
-                                    <option value="PERSONAL-TI" {{ old('rol', $usuarioTI->rol) == 'PERSONAL-TI' ? 'selected' : '' }}>Personal TI</option>
+                                    <option value="ADMIN" {{ old('rol', $usuarios_ti->rol) == 'ADMIN' ? 'selected' : '' }}>Administrador</option>  <!-- CAMBIADO -->
+                                    <option value="AUXILIAR-TI" {{ old('rol', $usuarios_ti->rol) == 'AUXILIAR-TI' ? 'selected' : '' }}>Auxiliar TI</option>  <!-- CAMBIADO -->
+                                    <option value="PERSONAL-TI" {{ old('rol', $usuarios_ti->rol) == 'PERSONAL-TI' ? 'selected' : '' }}>Personal TI</option>  <!-- CAMBIADO -->
                                 </select>
-                                @if($usuarioTI->id === auth()->id())
-                                    <input type="hidden" name="rol" value="{{ $usuarioTI->rol }}">
+                                @if($usuarios_ti->id === auth()->id())  <!-- CAMBIADO -->
+                                    <input type="hidden" name="rol" value="{{ $usuarios_ti->rol }}">  <!-- CAMBIADO -->
                                     <small class="form-text text-muted">No puedes cambiar tu propio rol</small>
                                 @endif
                                 @error('rol')
@@ -80,7 +87,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="nombres" class="form-label">Nombres *</label>
                                 <input type="text" class="form-control @error('nombres') is-invalid @enderror" 
-                                       id="nombres" name="nombres" value="{{ old('nombres', $usuarioTI->nombres) }}" required>
+                                       id="nombres" name="nombres" value="{{ old('nombres', $usuarios_ti->nombres) }}" required>  <!-- CAMBIADO -->
                                 @error('nombres')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -89,7 +96,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="apellidos" class="form-label">Apellidos</label>
                                 <input type="text" class="form-control @error('apellidos') is-invalid @enderror" 
-                                       id="apellidos" name="apellidos" value="{{ old('apellidos', $usuarioTI->apellidos) }}">
+                                       id="apellidos" name="apellidos" value="{{ old('apellidos', $usuarios_ti->apellidos) }}">  <!-- CAMBIADO -->
                                 @error('apellidos')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -98,7 +105,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="puesto" class="form-label">Puesto</label>
                                 <input type="text" class="form-control @error('puesto') is-invalid @enderror" 
-                                       id="puesto" name="puesto" value="{{ old('puesto', $usuarioTI->puesto) }}">
+                                       id="puesto" name="puesto" value="{{ old('puesto', $usuarios_ti->puesto) }}">  <!-- CAMBIADO -->
                                 @error('puesto')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -107,7 +114,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="telefono" class="form-label">Teléfono</label>
                                 <input type="tel" class="form-control @error('telefono') is-invalid @enderror" 
-                                       id="telefono" name="telefono" value="{{ old('telefono', $usuarioTI->telefono) }}">
+                                       id="telefono" name="telefono" value="{{ old('telefono', $usuarios_ti->telefono) }}">  <!-- CAMBIADO -->
                                 @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -125,7 +132,7 @@
                                 <label for="contrasena" class="form-label">Nueva Contraseña</label>
                                 <input type="password" class="form-control @error('contrasena') is-invalid @enderror" 
                                        id="contrasena" name="contrasena">
-                                <small class="form-text text-muted">Mínimo 8 caracteres</small>
+                                <small class="form-text text-muted">Mínimo 8 caracteres, debe contener mayúsculas, minúsculas y números</small>
                                 @error('contrasena')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

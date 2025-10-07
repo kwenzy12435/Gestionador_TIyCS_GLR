@@ -41,8 +41,10 @@ Route::middleware('auth')->group(function () {
         ->name('usuarios-ti.actualizar-credenciales');
 
     // CRUD de Usuarios TI
-    Route::resource('usuarios-ti', UsuarioTIController::class);
-
+Route::resource('usuarios-ti', UsuarioTIController::class)->parameters([
+    'usuarios-ti' => 'usuarios_ti'
+]);
+    
     // CRUD de Colaboradores
     Route::resource('colaboradores', ColaboradorController::class)
         ->names('colaboradores')

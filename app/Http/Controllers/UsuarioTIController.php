@@ -55,23 +55,22 @@ class UsuarioTIController extends Controller
             ->with('success', 'Usuario TI creado exitosamente.');
     }
 
-    // Usamos route-model binding para mayor claridad y seguridad
-    public function show(UsuarioTI $usuarioTI)
+    public function show(UsuarioTI $usuarios_ti)
     {
-        return view('usuarios-ti.show', compact('usuarioTI'));
+        return view('usuarios-ti.show', compact('usuarios_ti'));
     }
 
-    public function edit(UsuarioTI $usuarioTI)
+    public function edit(UsuarioTI $usuarios_ti)
     {
-        return view('usuarios-ti.edit', compact('usuarioTI'));
+        return view('usuarios-ti.edit', compact('usuarios_ti'));
     }
 
-    // NOTE: recibe el modelo directamente (route-model binding)
-    public function update(Request $request, UsuarioTI $usuarioTI)
+    // CORRECCIÓN: Cambiar $usuarioTI por $usuarios_ti dentro del método
+    public function update(Request $request, UsuarioTI $usuarios_ti)
     {
         // Validación: 'contrasena' es opcional en actualización
         $request->validate([
-            'usuario' => 'required|string|max:100|unique:usuarios_ti,usuario,' . $usuarioTI->id,
+            'usuario' => 'required|string|max:100|unique:usuarios_ti,usuario,' . $usuarios_ti->id, // CAMBIADO
             'nombres' => 'required|string|max:100',
             'apellidos' => 'nullable|string|max:100',
             'puesto' => 'nullable|string|max:100',
@@ -104,27 +103,24 @@ class UsuarioTIController extends Controller
                 $data['contrasena'] = Hash::make($request->contrasena);
             }
 
-            $usuarioTI->update($data);
+            $usuarios_ti->update($data); // CAMBIADO
 
             return redirect()->route('usuarios-ti.index')
                 ->with('success', 'Usuario TI actualizado exitosamente.');
         } catch (\Throwable $e) {
-            // Loguea si lo deseas: Log::error(...)
             return back()->withInput()->withErrors(['error' => 'Ocurrió un error al actualizar el usuario.']);
         }
     }
 
-    // destroy con route-model binding
-    public function destroy(UsuarioTI $usuarioTI)
+    public function destroy(UsuarioTI $usuarios_ti)
     {
         try {
-            // Prevenir auto-eliminación
-            if ($usuarioTI->id === auth()->id()) {
+            if ($usuarios_ti->id === auth()->id()) {
                 return redirect()->route('usuarios-ti.index')
                     ->with('error', 'No puedes eliminar tu propio usuario.');
             }
 
-            $usuarioTI->delete();
+            $usuarios_ti->delete();
 
             return redirect()->route('usuarios-ti.index')
                 ->with('success', 'Usuario TI eliminado exitosamente.');
