@@ -17,6 +17,8 @@ use App\Http\Controllers\LogBajasController;
 Route::get('/', function () {
     return redirect('/login');
 });
+Route::post('login', [Auth\LoginController::class, 'login'])
+    ->middleware('throttle:login');
 
 // Rutas de autenticación (públicas)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

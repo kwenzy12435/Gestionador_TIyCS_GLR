@@ -1,0 +1,26 @@
+@import "bootstrap/scss/bootstrap";
+
+// ===== Estilos de prueba visual para el login =====
+body {
+  background: linear-gradient(135deg, #0d6efd, #003c8f);
+  min-height: 100vh;
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.2);
+}
+
+.card-header {
+  background-color: #003c8f !important;
+}
+
+.btn-primary {
+  background-color: #003c8f;
+  border-color: #003c8f;
+}
+.btn-primary:hover {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}

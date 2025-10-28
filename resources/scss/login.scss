@@ -1,0 +1,91 @@
+@import "bootstrap/scss/bootstrap";
+/* === Fondo con video o imagen === */
+.auth-bg {
+  position: fixed; inset: 0; overflow: hidden; background: #000;
+}
+.auth-bg video,
+.auth-bg .bg-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.45);
+}
+.auth-container {
+  position: relative; z-index: 1;
+}
+
+/* === Card y encabezado === */
+.auth-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.35);
+  background: #fff;
+}
+.auth-header {
+  background: #e57373;
+  color: #fff;
+  text-align: center;
+  padding: .9rem 1rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* === Logo === */
+.auth-logo {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 1rem auto;
+}
+
+/* === Inputs tipo “pill” === */
+.input-pill .input-group-text {
+  border-radius: 999px 0 0 999px !important;
+  background: #fff;
+  border-width: 2px;
+}
+.input-pill .form-control {
+  border-radius: 0 999px 999px 0 !important;
+  border-width: 2px;
+  font-style: italic;
+}
+
+/* === Botón salmón === */
+.btn-salmon {
+  background: #e57373;
+  border-color: #e57373;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: .8rem 1rem;
+  text-transform: lowercase;
+}
+.btn-salmon:hover {
+  background: #ef5350;
+  border-color: #ef5350;
+}
+
+/* === Link “olvidé mi contraseña” === */
+.forgot-link {
+  font-weight: 700;
+  color: #1a0dab;
+}
+
+/* === Toggle contraseña === */
+.password-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* === Responsive === */
+@media (max-width: 576px){
+  .auth-header { font-size: 1.25rem; }
+}
+/* Desactiva el video en pantallas pequeñas o si el usuario prefiere ahorro de datos/movimiento */
+@media (max-width: 576px),
+       (prefers-reduced-motion: reduce),
+       (prefers-reduced-data: reduce) {
+  .auth-bg video { display: none; }
+  .auth-bg .bg-img { filter: brightness(0.55); }
+}
