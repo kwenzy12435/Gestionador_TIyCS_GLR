@@ -30,7 +30,6 @@ class MonitoreoRedController extends Controller
     {
         $validated = $request->validate([
             'fecha' => 'required|date|before_or_equal:today', 
-            'hora' => 'required|date_format:H:i', 
             'velocidad_descarga' => 'required|numeric|min:0|max:1000', 
             'velocidad_subida' => 'required|numeric|min:0|max:1000',  
             'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
@@ -47,6 +46,7 @@ class MonitoreoRedController extends Controller
         ]);
 
        
+          $validated['hora'] = now()->setTimezone('America/Merida')->format('H:i');
 
         MonitoreoRed::create($validated);
 
@@ -74,7 +74,7 @@ class MonitoreoRedController extends Controller
         
         $validated = $request->validate([
             'fecha' => 'required|date|before_or_equal:today', 
-            'hora' => 'required|date_format:H:i', 
+            
             'velocidad_descarga' => 'required|numeric|min:0|max:1000',
             'velocidad_subida' => 'required|numeric|min:0|max:1000',
             'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
@@ -91,7 +91,7 @@ class MonitoreoRedController extends Controller
         ]);
 
       
-
+          $validated['hora'] = now()->setTimezone('America/Merida')->format('H:i');
         $monitoreo->update($validated);
 
         return redirect()->route('monitoreo-red.index')

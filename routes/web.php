@@ -41,9 +41,20 @@ Route::middleware('auth')->group(function () {
         ->name('usuarios-ti.actualizar-credenciales');
 
     // CRUD de Usuarios TI
-Route::resource('usuarios-ti', UsuarioTIController::class)->parameters([
-    'usuarios-ti' => 'usuarios_ti'
-]);
+Route::middleware(['auth'])->group(function() {
+
+    Route::prefix('usuarios-ti')->name('usuarios-ti.')->group(function() {
+        Route::get('/', [UsuarioTIController::class, 'index'])->name('index');
+        Route::get('/create', [UsuarioTIController::class, 'create'])->name('create');
+        Route::post('/', [UsuarioTIController::class, 'store'])->name('store');
+        Route::get('/{usuario}/edit', [UsuarioTIController::class, 'edit'])->name('edit');
+        Route::put('/{usuario}', [UsuarioTIController::class, 'update'])->name('update');
+        Route::delete('/{usuario}', [UsuarioTIController::class, 'destroy'])->name('destroy');
+        Route::get('/{usuario}', [UsuarioTIController::class, 'show'])->name('show');
+    });
+        Route::post('/actualizar-credenciales', [UsuarioTIController::class, 'actualizarCredenciales'])
+         ->name('usuarios-ti.actualizarCredenciales');
+});
     
     // CRUD de Colaboradores
     Route::resource('colaboradores', ColaboradorController::class)

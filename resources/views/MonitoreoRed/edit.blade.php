@@ -47,14 +47,11 @@
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="hora" class="form-label">Hora *</label>
-                                <input type="time" class="form-control" 
-                                id="hora" name="hora" value="{{ $monitoreo->hora }}" readonly>
-
-                                @error('hora')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <label class="form-label">Hora de actualización</label>
+                            <input type="text" class="form-control" 
+                                value="{{ now()->format('H:i') }}" readonly disabled>
+                             <small class="text-muted">Se actualizará automáticamente al guardar</small>
+                                </div>
                             
                             <div class="col-md-6 mb-3">
                                 <label for="velocidad_descarga" class="form-label">Velocidad de Descarga (Mbps) *</label>
