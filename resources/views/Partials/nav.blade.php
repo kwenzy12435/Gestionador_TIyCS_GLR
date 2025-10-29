@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="{{ route('home') }}">{{ config('app.name','App') }}</a>
+    <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">{{ config('app.name','App') }}</a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
       <span class="navbar-toggler-icon"></span>
@@ -8,10 +8,7 @@
 
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="{{ route('dispositivos.index') }}">Dispositivos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ route('licencias.index') }}">Licencias</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ route('colaboradores.index') }}">Colaboradores</a></li>
-      </ul>
+        
 
       <ul class="navbar-nav ms-auto">
         @auth

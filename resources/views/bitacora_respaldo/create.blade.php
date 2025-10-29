@@ -1,3 +1,7 @@
+
+@import 'bootstrap/scss/bootstrap';
+@import 'estilo_personalizado.scss';
+
 @extends('layouts.app')
 
 @section('title', 'Crear Registro - Bitácora Respaldos')

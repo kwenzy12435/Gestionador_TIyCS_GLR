@@ -14,3 +14,14 @@
     </ul>
   </x-alert>
 @endif
+@if (session('status'))
+  <div class="alert alert-info mb-3">{{ session('status') }}</div>
+@endif
+
+@if ($errors->any())
+  <div class="alert alert-danger mb-3">
+    <ul class="mb-0">
+      @foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach
+    </ul>
+  </div>
+@endif

@@ -3,16 +3,6 @@
 @section('title', 'Usuarios TI - Sistema de Gestión TI')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3 col-lg-2 bg-light sidebar">
-            <!-- Sidebar -->
-            <nav class="nav flex-column">
-                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
-                <a class="nav-link active" href="{{ route('usuarios-ti.index') }}">Usuarios TI</a>
-            </nav>
-        </div>
-
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                 <h1 class="h2">Usuarios TI</h1>

@@ -1,20 +1,27 @@
 @import "bootstrap/scss/bootstrap";
-/* === Fondo con video o imagen === */
+
 .auth-bg {
-  position: fixed; inset: 0; overflow: hidden; background: #000;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
 }
+
 .auth-bg video,
 .auth-bg .bg-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   filter: brightness(0.45);
 }
+
 .auth-container {
-  position: relative; z-index: 1;
+  position: relative;
+  z-index: 1;
 }
 
-/* === Card y encabezado === */
 .auth-card {
   border: none;
   border-radius: 16px;
@@ -22,6 +29,7 @@
   box-shadow: 0 8px 40px rgba(0,0,0,.35);
   background: #fff;
 }
+
 .auth-header {
   background: #e57373;
   color: #fff;
@@ -31,7 +39,6 @@
   font-size: 1.5rem;
 }
 
-/* === Logo === */
 .auth-logo {
   display: block;
   width: 100%;
@@ -39,19 +46,122 @@
   margin: 0 auto 1rem auto;
 }
 
-/* === Inputs tipo “pill” === */
+/* Inputs tipo pill */
+.input-pill {
+  border-radius: 999px;
+  overflow: hidden;
+  /* Eliminar box-shadow para evitar conflicto visual. El foco lo manejará el borde. */
+  box-shadow: none; 
+  transition: all 0.3s ease;
+}
+
+/* Establecer altura y transición base */
+.input-pill .form-control,
+.input-pill .input-group-text,
+.input-pill .btn-eye,
+.input-pill .btn-icon { /* Nueva clase genérica para el icono de la derecha */
+  height: 42px;
+  border-width: 2px;
+  border-color: #ddd;
+  transition: all 0.3s ease;
+}
+
+/* Estilo para el icono izquierdo (Usuario/Candado) */
 .input-pill .input-group-text {
   border-radius: 999px 0 0 999px !important;
   background: #fff;
-  border-width: 2px;
-}
-.input-pill .form-control {
-  border-radius: 0 999px 999px 0 !important;
-  border-width: 2px;
-  font-style: italic;
+  border-right: none;
+  padding-left: 1rem;
 }
 
-/* === Botón salmón === */
+/* Estilo base del input */
+.input-pill .form-control {
+  border-left: none;
+  border-right: none; /* Asegura que no tenga bordes redundantes */
+  border-radius: 0 !important;
+  font-style: italic;
+  padding: 0.375rem 0.75rem;
+  border-color: #ddd;
+  /* Resetear box-shadow de Bootstrap en focus para evitar parpadeo */
+  box-shadow: none !important;
+}
+
+/* Campos sin elemento a la derecha (solo form-control y text) */
+.input-pill.no-eye .form-control {
+  /* El borde y el redondeado lo lleva el form-control en este caso */
+  border-right: 2px solid #ddd;
+  border-radius: 0 999px 999px 0 !important;
+}
+
+/* Estilo para el botón de 'ojo' (Contraseña) */
+.input-pill .btn-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 0 .75rem;
+  background: #fff;
+  color: #6c757d;
+border-left-width: 2px;
+  border-left-style: solid;
+  border-left-color: transparent !important;
+  border-radius: 0 999px 999px 0 !important;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  border-color: #ddd;
+  box-shadow: none;
+}
+
+.input-pill .btn-eye:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+.input-pill:not(.no-eye) .form-control {
+    border-right: none !important;
+}
+.input-pill:focus-within .btn-eye {
+  border-color: #e57373;
+  /* Mantenemos el border-left transparente para evitar la línea divisoria */
+  border-left-color: transparent !important; 
+}
+/* Si tu campo Usuario tiene un icono o span a la derecha que NO es el btn-eye */
+.input-pill .btn-icon { 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 0 .75rem;
+  background: #fff;
+  color: #e57373; /* Color llamativo para el icono de advertencia/información */
+  border-left: none;
+  border-radius: 0 999px 999px 0 !important;
+  border-color: #ddd;
+}
+
+/* 🔄 FIX DE PARPADEO: Aplicar el efecto de foco (anillo) al contenedor principal */
+.input-pill:focus-within .input-group-text,
+.input-pill:focus-within .form-control,
+.input-pill:focus-within .btn-eye,
+.input-pill:focus-within .btn-icon {
+  border-color: #e57373; /* Cambiar color de borde a salmon */
+}
+
+/* Aplicar el box-shadow (anillo de foco) solo una vez en el contenedor */
+.input-pill:focus-within {
+  box-shadow: 0 0 0 3px rgba(229, 115, 115, 0.25);
+}
+
+
+
+.form-label.fw-bold {
+  color: #333;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-size: 1rem;
+}
+
 .btn-salmon {
   background: #e57373;
   border-color: #e57373;
@@ -60,32 +170,157 @@
   border-radius: 12px;
   padding: .8rem 1rem;
   text-transform: lowercase;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
 }
+
 .btn-salmon:hover {
   background: #ef5350;
   border-color: #ef5350;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* === Link “olvidé mi contraseña” === */
-.forgot-link {
+.form-check {
+  margin: 1.5rem 0;
+}
+
+.form-check-input {
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.15em;
+  margin-right: 0.5em;
+  border: 2px solid #ddd;
+}
+
+.form-check-input:checked {
+  background-color: #e57373;
+  border-color: #e57373;
+}
+
+.form-check-input:focus {
+  border-color: #e57373;
+  box-shadow: 0 0 0 0.2rem rgba(229, 115, 115, 0.25);
+}
+
+.form-check-label {
   font-weight: 700;
-  color: #1a0dab;
-}
-
-/* === Toggle contraseña === */
-.password-toggle {
+  color: #333;
   cursor: pointer;
-  user-select: none;
+  font-size: 0.95rem;
 }
 
-/* === Responsive === */
-@media (max-width: 576px){
-  .auth-header { font-size: 1.25rem; }
+/* Media Queries */
+@media (max-width: 576px) {
+  .auth-header {
+    font-size: 1.25rem;
+    padding: 0.75rem;
+  }
+  
+  .auth-card {
+    margin: 0.5rem;
+    border-radius: 12px;
+  }
+  
+  .auth-logo {
+    max-width: 280px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .input-pill .form-control,
+  .input-pill .input-group-text,
+  .input-pill .btn-eye,
+  .input-pill .btn-icon {
+    height: 38px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-salmon {
+    padding: 0.7rem 0.9rem;
+    font-size: 1rem;
+  }
+  
+  .p-4.p-md-5 {
+    padding: 1.5rem !important;
+  }
 }
-/* Desactiva el video en pantallas pequeñas o si el usuario prefiere ahorro de datos/movimiento */
+
 @media (max-width: 576px),
-       (prefers-reduced-motion: reduce),
-       (prefers-reduced-data: reduce) {
-  .auth-bg video { display: none; }
-  .auth-bg .bg-img { filter: brightness(0.55); }
+        (prefers-reduced-motion: reduce),
+        (prefers-reduced-data: reduce) {
+  .auth-bg video {
+    display: none;
+  }
+  
+  .auth-bg .bg-img {
+    filter: brightness(0.55);
+  }
+}
+
+/* Estilos de Validación */
+.alert-validation {
+  border-radius: 12px;
+  border: 1px solid #dc3545;
+  background: linear-gradient(135deg, #fff5f5, #fed7d7);
+  color: #c53030;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.1);
+}
+
+.alert-validation i {
+  margin-right: 8px;
+}
+
+.error-message {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  color: #dc3545;
+  padding: 8px 12px;
+  background: #fff5f5;
+  border-radius: 8px;
+  border-left: 3px solid #dc3545;
+  animation: slideIn 0.3s ease;
+}
+
+.error-message i {
+  margin-right: 6px;
+  font-size: 0.8rem;
+}
+
+/* Estado de error */
+.input-pill.is-invalid .input-group-text,
+.input-pill.is-invalid .form-control,
+.input-pill.is-invalid .btn-eye,
+.input-pill.is-invalid .btn-icon {
+    border-color: #dc3545 !important;
+}
+
+/* Asegurar que el anillo de foco en error sea correcto */
+.input-pill.is-invalid:focus-within {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .error-message {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+  
+  .alert-validation {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
 }
