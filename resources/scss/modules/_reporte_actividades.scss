@@ -1,0 +1,26 @@
+.reporte-actividades-table {
+  .table th {
+    background: var(--brand);
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  .form-control {
+    border-radius: .5rem;
+  }
+
+  .btn-outline-primary:hover {
+    background: var(--brand);
+    color: #fff;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+@media (max-width: 768px) {
+  .reporte-actividades-table table {
+    font-size: .875rem;
+  }
+}

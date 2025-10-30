@@ -1,0 +1,20 @@
+.monitoreo-table {
+  .table th {
+    background: var(--brand);
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  .badge {
+    font-weight: 600;
+    letter-spacing: .02em;
+  }
+
+  .form-control, .form-select {
+    border-radius: .5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .monitoreo-table .table { font-size: .875rem; }
+}

@@ -1,127 +1,74 @@
 @extends('layouts.app')
+@section('title', 'Monitoreo de Red')
 
-@section('title', 'Monitoreo de Red - Sistema de Gestión TI')
+@section('page-header')
+  <h1 class="h3 mb-0 fw-bold"><i class="bi bi-reception-4 me-2"></i>Monitoreo de Red</h1>
+@endsection
+
+@section('header-actions')
+  <a href="{{ route('monitoreo-red.create') }}" class="btn btn-brand">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo registro
+  </a>
+@endsection
 
 @section('content')
+@include('Partials.flash')
 
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 bg-light sidebar">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('monitoreo-red.index') }}">
-                            <i class="fas fa-network-wired me-2"></i>
-                            Monitoreo Red
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">Monitoreo de Red</h1>
-                <div>
-                    <a href="{{ route('dashboard') }}" class="btn btn-primary me-2">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    <a href="{{ route('monitoreo-red.create') }}" class="btn btn-success">
-                        <i class="fas fa-plus me-2"></i>Nuevo Registro
-                    </a>
-                </div>
-            </div>
-
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            <div class="card">
-                <div class="card-body">
-                    @if($monitoreos->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Fecha</th>
-                                        <th>Hora</th>
-                                        <th>Descarga (Mbps)</th>
-                                        <th>Subida (Mbps)</th>
-                                        <th>Experiencia Wi-Fi</th>
-                                        <th>Clientes</th>
-                                        <th>Responsable</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($monitoreos as $monitoreo)
-                                    <tr>
-                                        <td>{{ $monitoreo->id }}</td>
-                                        <td>{{ $monitoreo->fecha->format('d/m/Y') }}</td>
-                                        <td>{{ $monitoreo->hora }}</td>
-                                        <td>
-                                            <span class="badge bg-info">{{ $monitoreo->velocidad_descarga }} Mbps</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ $monitoreo->velocidad_subida }} Mbps</span>
-                                        </td>
-                                        <td>
-                                            @if($monitoreo->porcentaje_experiencia_wifi >= 80)
-                                                <span class="badge bg-success">{{ $monitoreo->porcentaje_experiencia_wifi }}%</span>
-                                            @elseif($monitoreo->porcentaje_experiencia_wifi >= 50)
-                                                <span class="badge bg-warning">{{ $monitoreo->porcentaje_experiencia_wifi }}%</span>
-                                            @else
-                                                <span class="badge bg-danger">{{ $monitoreo->porcentaje_experiencia_wifi }}%</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ $monitoreo->clientes_conectados }}</span>
-                                        </td>
-                                        <td>
-                                            @if($monitoreo->usuarioResponsable)
-                                                {{ $monitoreo->usuarioResponsable->nombres }} {{ $monitoreo->usuarioResponsable->apellidos }}
-                                            @else
-                                                <span class="text-muted">N/A</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('monitoreo-red.show', $monitoreo->id) }}" class="btn btn-info btn-sm" title="Ver">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('monitoreo-red.edit', $monitoreo->id) }}" class="btn btn-warning btn-sm" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form action="{{ route('monitoreo-red.destroy', $monitoreo->id) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este registro?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle me-2"></i>
-                            No hay registros de monitoreo de red.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </main>
+<div class="card p-3 shadow-sm monitoreo-table">
+  <form method="GET" class="mb-3">
+    <div class="input-group">
+      <input type="text" name="search" class="form-control" placeholder="Buscar por fecha, responsable, observaciones..." value="{{ $search ?? '' }}">
+      <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
     </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Descarga (Mbps)</th>
+          <th>Subida (Mbps)</th>
+          <th>Experiencia WiFi (%)</th>
+          <th>Clientes</th>
+          <th>Responsable</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($monitoreos as $m)
+          <tr>
+            <td>{{ \Carbon\Carbon::parse($m->fecha)->format('d/m/Y') }}</td>
+            <td>{{ $m->hora }}</td>
+            <td>{{ number_format($m->velocidad_descarga, 2) }}</td>
+            <td>{{ number_format($m->velocidad_subida, 2) }}</td>
+            <td>
+              <span class="badge {{ $m->porcentaje_experiencia_wifi >= 80 ? 'bg-success' : ($m->porcentaje_experiencia_wifi >= 60 ? 'bg-warning text-dark' : 'bg-danger') }}">
+                {{ $m->porcentaje_experiencia_wifi }}
+              </span>
+            </td>
+            <td>{{ $m->clientes_conectados }}</td>
+            <td>{{ $m->usuarioResponsable?->usuario ?? '—' }}</td>
+            <td class="text-end">
+              <a href="{{ route('monitoreo-red.show', $m->id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+              <a href="{{ route('monitoreo-red.edit', $m->id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+              <form action="{{ route('monitoreo-red.destroy', $m->id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete(this)">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="8" class="text-center text-muted py-3">Sin registros.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
 </div>
 @endsection
+
+@push('scripts')
+@vite('resources/js/monitoreo_red.js')
+@endpush

@@ -1,283 +1,108 @@
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+// resources/js/licencias.js
 
-// licencias.js - Manejo de autenticación para licencias
-
-class LicenciasManager {
-    constructor() {
-        this.accionPendiente = null;
-        this.idPendiente = null;
-        this.passwordVisible = false;
-        this.init();
-    }
-
-    init() {
-        this.bindEvents();
-    }
-
-    bindEvents() {
-        // Usar delegación de eventos para mejor rendimiento
-        document.addEventListener('click', (e) => {
-            // Botones de editar
-            if (e.target.closest('.btn-editar')) {
-                e.preventDefault();
-                const btn = e.target.closest('.btn-editar');
-                const id = btn.dataset.id;
-                this.solicitarPassword('edit', id);
-            }
-
-            // Botones de eliminar
-            if (e.target.closest('.btn-eliminar')) {
-                e.preventDefault();
-                const btn = e.target.closest('.btn-eliminar');
-                const id = btn.dataset.id;
-                this.solicitarPassword('delete', id);
-            }
-
-            // Botón de ojo para mostrar contraseña
-            if (e.target.closest('#btnTogglePassword')) {
-                e.preventDefault();
-                this.togglePassword();
-            }
-        });
-
-        // Botones específicos de la página show
-        if (document.getElementById('btnEditar')) {
-            document.getElementById('btnEditar').addEventListener('click', (e) => {
-                e.preventDefault();
-                const id = this.obtenerIdDeUrl();
-                this.solicitarPassword('edit', id);
-            });
-        }
-
-        if (document.getElementById('btnEliminar')) {
-            document.getElementById('btnEliminar').addEventListener('click', (e) => {
-                e.preventDefault();
-                const id = this.obtenerIdDeUrl();
-                this.solicitarPassword('delete', id);
-            });
-        }
-
-        // Evento para el botón confirmar del modal
-        if (document.getElementById('confirmPasswordBtn')) {
-            document.getElementById('confirmPasswordBtn').addEventListener('click', () => {
-                this.confirmarPassword();
-            });
-        }
-
-        // Evento para Enter en el input de password
-        if (document.getElementById('passwordInput')) {
-            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.confirmarPassword();
-                }
-            });
-        }
-    }
-
-    solicitarPassword(accion, id = null) {
-        this.accionPendiente = accion;
-        this.idPendiente = id;
-        
-        const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
-        modal.show();
-        
-        this.limpiarModal();
-        
-        // Enfocar input después de que se muestre el modal
-        setTimeout(() => {
-            const input = document.getElementById('passwordInput');
-            if (input) input.focus();
-        }, 500);
-    }
-
-    limpiarModal() {
-        const input = document.getElementById('passwordInput');
-        const error = document.getElementById('passwordError');
-        
-        if (input) input.value = '';
-        if (error) {
-            error.textContent = '';
-            error.style.display = 'none';
-        }
-    }
-
-    async confirmarPassword() {
-    const input = document.getElementById('passwordInput');
-    const errorDiv = document.getElementById('passwordError');
-    
-    if (!input || !errorDiv) return;
-    
-    const password = input.value.trim();
-    
-    if (!password) {
-        this.mostrarError('Ingrese su contraseña');
-        return;
-    }
-
-    try {
-        // SOLUCIÓN: Usar la ruta correcta
-        const response = await fetch('/licencias/confirmar-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': this.getCsrfToken(),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ password: password })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            this.ejecutarAccion();
-        } else {
-            this.mostrarError(data.message || 'Contraseña incorrecta');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        this.mostrarError('Error de conexión con el servidor');
-    }
-    }
-
-    ejecutarAccion() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
-        if (modal) modal.hide();
-
-        switch (this.accionPendiente) {
-            case 'edit':
-                this.editarLicencia();
-                break;
-            case 'delete':
-                this.eliminarLicencia();
-                break;
-            case 'view':
-                this.mostrarPassword();
-                break;
-        }
-
-        this.limpiarEstado();
-    }
-
-    editarLicencia() {
-        let url = '';
-        if (this.idPendiente) {
-            url = `/licencias/${this.idPendiente}/edit`;
-        } else {
-            const id = this.obtenerIdDeUrl();
-            if (id) {
-                url = `/licencias/${id}/edit`;
-            }
-        }
-        
-        if (url) {
-            window.location.href = url;
-        }
-    }
-
-    eliminarLicencia() {
-        if (confirm('¿Está seguro de eliminar esta licencia?')) {
-            const form = document.getElementById('deleteForm');
-            if (form) {
-                let url = '';
-                if (this.idPendiente) {
-                    url = `/licencias/${this.idPendiente}`;
-                } else {
-                    const id = this.obtenerIdDeUrl();
-                    if (id) {
-                        url = `/licencias/${id}`;
-                    }
-                }
-                
-                if (url) {
-                    form.action = url;
-                    form.submit();
-                }
-            }
-        }
-    }
-
-    togglePassword() {
-        if (!this.passwordVisible) {
-            this.solicitarPassword('view');
-        } else {
-            this.ocultarPassword();
-        }
-    }
-
-    mostrarPassword() {
-        const passwordField = document.getElementById('passwordField');
-        const passwordIcon = document.getElementById('passwordIcon');
-        
-        if (passwordField && passwordIcon) {
-            passwordField.type = 'text';
-            passwordIcon.className = 'fas fa-eye-slash';
-            this.passwordVisible = true;
-            
-            // Ocultar automáticamente después de 15 segundos
-            setTimeout(() => {
-                if (this.passwordVisible) {
-                    this.ocultarPassword();
-                }
-            }, 15000);
-        }
-    }
-
-    ocultarPassword() {
-        const passwordField = document.getElementById('passwordField');
-        const passwordIcon = document.getElementById('passwordIcon');
-        
-        if (passwordField && passwordIcon) {
-            passwordField.type = 'password';
-            passwordIcon.className = 'fas fa-eye';
-            this.passwordVisible = false;
-        }
-    }
-
-    obtenerIdDeUrl() {
-        const path = window.location.pathname;
-        const match = path.match(/\/licencias\/(\d+)/);
-        return match ? match[1] : null;
-    }
-
-    mostrarError(mensaje) {
-        const errorDiv = document.getElementById('passwordError');
-        if (errorDiv) {
-            errorDiv.textContent = mensaje;
-            errorDiv.style.display = 'block';
-        }
-    }
-
-    limpiarEstado() {
-        this.accionPendiente = null;
-        this.idPendiente = null;
-    }
-
-    getCsrfToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        return meta ? meta.getAttribute('content') : '';
-    }
+// Utilidad: obtener token CSRF desde un input hidden del form o inyectado por blade
+function getCsrf(formEl) {
+  const input = formEl?.querySelector('input[name="_token"]');
+  if (input) return input.value;
+  // fallback: intenta desde cualquier input csrf en el documento
+  const any = document.querySelector('input[name="_token"]');
+  return any ? any.value : '';
 }
 
-// Inicialización cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    window.licenciasManager = new LicenciasManager();
+// Confirmar eliminación simple
+function confirmDelete(form) {
+  return confirm('¿Seguro que deseas eliminar este registro? Esta acción no se puede deshacer.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const revealModalEl = document.getElementById('revealModal');
+  if (revealModalEl) {
+    const modal = new bootstrap.Modal(revealModalEl);
+    const form = document.getElementById('revealForm');
+    const idInput = document.getElementById('licenciaId');
+    const resultBox = document.getElementById('revealResult');
+    const pwdField = document.getElementById('revealedPassword');
+    const errorBox = document.getElementById('revealError');
+    const submitBtn = document.getElementById('revealSubmit');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // Abrir modal al click en "ojo"
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action="reveal"]');
+      if (!btn) return;
+      idInput.value = btn.getAttribute('data-id');
+      form.reset();
+      resultBox.classList.add('d-none');
+      errorBox.classList.add('d-none');
+      pwdField.value = '';
+      submitBtn.disabled = false;
+      modal.show();
+    });
+
+    // Enviar al backend para validar password de usuario y revelar
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+
+      const licenciaId = idInput.value;
+      const password = form.querySelector('input[name="password"]').value;
+      const csrf = getCsrf(form);
+
+      try {
+        const resp = await fetch(`/licencias/${licenciaId}/revelar`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrf,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ password })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) {
+          throw new Error(data.message || 'No se pudo revelar la contraseña.');
+        }
+
+        // Mostrar contraseña
+        pwdField.value = data.contrasena;
+        resultBox.classList.remove('d-none');
+        errorBox.classList.add('d-none');
+
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.remove('d-none');
+        resultBox.classList.add('d-none');
+      } finally {
+        // Anti brute-force: pequeña espera antes de permitir otro intento
+        setTimeout(() => { submitBtn.disabled = false; }, 1500);
+      }
+    });
+
+    // Copiar
+    copyBtn?.addEventListener('click', async () => {
+      if (!pwdField.value) return;
+      try {
+        await navigator.clipboard.writeText(pwdField.value);
+        copyBtn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+        setTimeout(() => copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>', 1200);
+      } catch {}
+    });
+  }
+
+  // Generar contraseña rápida (create/edit)
+  document.querySelectorAll('#genPwdBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = btn.parentElement.querySelector('input[type="password"]');
+      if (!input) return;
+      // Generador sencillo (puedes endurecerlo si quieres)
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%*?';
+      let s = '';
+      for (let i = 0; i < 14; i++) s += chars[Math.floor(Math.random() * chars.length)];
+      input.value = s;
+      input.dispatchEvent(new Event('input'));
+    });
+  });
 });
-
-// Funciones globales para compatibilidad
-window.solicitarPassword = function(accion, id) {
-    if (window.licenciasManager) {
-        window.licenciasManager.solicitarPassword(accion, id);
-    }
-};
-
-window.confirmarPassword = function() {
-    if (window.licenciasManager) {
-        window.licenciasManager.confirmarPassword();
-    }
-};
-
-window.togglePassword = function() {
-    if (window.licenciasManager) {
-        window.licenciasManager.togglePassword();
-    }
-};

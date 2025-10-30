@@ -1,141 +1,36 @@
 @extends('layouts.app')
-@section('title','Detalle Licencia')
-  @vite(['resources/js/licencias.js'])
+@section('title', 'Detalle de Licencia')
+
+@section('page-header')
+  <h1 class="h3 mb-0 fw-bold"><i class="bi bi-eye me-2"></i>Detalle de licencia</h1>
+@endsection
+
 @section('content')
-
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 bg-light sidebar">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('usuarios-ti.index') }}">
-                            <i class="fas fa-users me-2"></i>Usuarios TI
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('colaboradores.index') }}">
-                            <i class="fas fa-user-friends me-2"></i>Colaboradores
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('inventario-dispositivos.index') }}">
-                            <i class="fas fa-laptop me-2"></i>Inventario
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('licencias.index') }}">
-                            <i class="fas fa-key me-2"></i>Licencias
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">Detalle de Licencia</h1>
-                <div>
-                    <button class="btn btn-warning me-2" id="btnEditar">
-                        <i class="fas fa-edit me-2"></i>Editar
-                    </button>
-                    <button class="btn btn-danger me-2" id="btnEliminar">
-                        <i class="fas fa-trash me-2"></i>Eliminar
-                    </button>
-                    <a href="{{ route('licencias.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Volver
-                    </a>
-                </div>
-            </div>
-
-            <!-- Modal para confirmar contraseña -->
-            <div class="modal fade" id="passwordModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Confirmar Contraseña</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Por seguridad, ingrese su contraseña para continuar:</p>
-                            <input type="password" id="passwordInput" class="form-control" placeholder="Contraseña">
-                            <div id="passwordError" class="text-danger mt-2" style="display: none;"></div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary" id="confirmPasswordBtn">Confirmar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-bordered">
-                                <tr>
-                                    <th>Cuenta:</th>
-                                    <td>{{ $licencia->cuenta }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Contraseña:</th>
-                                    <td>
-                                        <div class="input-group">
-                                            <input type="password" class="form-control" id="passwordField" value="{{ $licencia->contrasena }}" readonly>
-                                            <button type="button" class="btn btn-outline-secondary" id="btnTogglePassword">
-                                                <i class="fas fa-eye" id="passwordIcon"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Plataforma:</th>
-                                    <td>{{ $licencia->plataforma->nombre ?? 'N/A' }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-bordered">
-                                <tr>
-                                    <th>Colaborador:</th>
-                                    <td>{{ $licencia->colaborador ? $licencia->colaborador->nombre.' '.$licencia->colaborador->apellidos : 'Sin asignar' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Expiración:</th>
-                                    <td>{{ $licencia->expiracion ? $licencia->expiracion->format('d/m/Y') : 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estado:</th>
-                                    <td>
-                                        @if($licencia->expiracion && $licencia->expiracion->isPast())
-                                            <span class="badge bg-danger">Expirada</span>
-                                        @elseif($licencia->expiracion && $licencia->expiracion->diffInDays(now()) <= 30)
-                                            <span class="badge bg-warning">Por expirar</span>
-                                        @else
-                                            <span class="badge bg-success">Activa</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="card p-4 shadow-sm">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <p><strong>Cuenta:</strong> {{ $licencia->cuenta }}</p>
+      <p><strong>Plataforma:</strong> {{ $licencia->plataforma?->nombre ?? '—' }}</p>
+      <p><strong>Colaborador:</strong> {{ $licencia->colaborador?->nombres }} {{ $licencia->colaborador?->apellidos }} ({{ $licencia->colaborador?->email }})</p>
     </div>
-</div>
+    <div class="col-md-6">
+      @if($licencia->expiracion)
+        @php
+          $exp = \Carbon\Carbon::parse($licencia->expiracion);
+          $days = now()->diffInDays($exp, false);
+          $badge = $days < 0 ? 'bg-danger' : ($days <= 7 ? 'bg-warning text-dark' : 'bg-success');
+        @endphp
+        <p><strong>Expiración:</strong> <span class="badge {{ $badge }}">{{ $exp->format('d/m/Y') }} ({{ $days < 0 ? $days : "+$days" }} días)</span></p>
+      @else
+        <p><strong>Expiración:</strong> <span class="badge bg-secondary">—</span></p>
+      @endif
+    </div>
+  </div>
 
-<form id="deleteForm" method="POST" style="display: none;">
-    @csrf
-    @method('DELETE')
-</form>
+  <div class="d-flex gap-2 mt-3">
+    <a href="{{ route('licencias.edit', $licencia->id) }}" class="btn btn-warning"><i class="bi bi-pencil"></i> Editar</a>
+    <a href="{{ route('licencias.ver_contrasena', $licencia->id) }}" class="btn btn-outline-dark"><i class="bi bi-eye-slash"></i> Ver contraseña</a>
+    <a href="{{ route('licencias.index') }}" class="btn btn-outline-secondary">Volver</a>
+  </div>
+</div>
 @endsection

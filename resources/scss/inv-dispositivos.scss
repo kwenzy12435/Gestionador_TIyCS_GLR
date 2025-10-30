@@ -1,0 +1,47 @@
+/* Inventario de Dispositivos (usa tus CSS vars y layout .ui-*) */
+
+/* utilidades */
+.visually-hidden {
+  position:absolute!important; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(1px,1px,1px,1px); border:0; white-space:nowrap;
+}
+
+/* header */
+.page-header .page-title { font-size: var(--font-size-2xl); font-weight: 700; }
+
+/* filtros */
+.inv-filters .input-group { display:flex; gap: var(--spacing-sm); }
+.inv-filters .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+
+/* tabla */
+.table td code {
+  background: var(--gray-50);
+  padding: .1rem .35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+.badge.bg-warning { color: var(--black); }
+
+/* tarjetas internas */
+.card .card-header { background: var(--gray-50); }
+
+/* pre auditoría reutilizado (show) */
+.log-pre {
+  background: var(--gray-50);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  max-height: 320px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: var(--font-size-sm);
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .inv-filters .input-group { flex-wrap: wrap; }
+}

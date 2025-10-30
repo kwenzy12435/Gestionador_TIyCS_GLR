@@ -19,16 +19,52 @@ use Carbon\Carbon;
 
 class InventarioDispositivoController extends Controller
 {
+    private function estados(): array
+    {
+        return ['nuevo', 'asignado', 'reparación'];
+    }
+    
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $dispositivos = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $search      = trim((string)$request->input('search', ''));
+        $tipoId      = $request->input('tipo_id');
+        $marcaId     = $request->input('marca_id');
+        $estado      = $request->input('estado');
 
-        return view('inventario_dispositivos.index', compact('dispositivos'));
+        $dispositivos = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $search) . '%';
+                // Reemplazar múltiples OR con SQL directo para mejor rendimiento
+                $q->whereRaw("
+                    modelo LIKE ? OR 
+                    numero_serie LIKE ? OR 
+                    serie LIKE ? OR 
+                    mac LIKE ? OR 
+                    procesador LIKE ? OR 
+                    memoria_ram LIKE ? OR 
+                    ssd LIKE ? OR 
+                    hdd LIKE ? OR 
+                    color LIKE ? OR
+                    tipo_id IN (SELECT id FROM tipos_dispositivo WHERE nombre LIKE ?) OR
+                    marca_id IN (SELECT id FROM marcas WHERE nombre LIKE ?) OR
+                    colaborador_id IN (SELECT id FROM colaboradores WHERE nombre LIKE ? OR apellidos LIKE ? OR email LIKE ?)
+                ", array_fill(0, 14, $like));
+            })
+            ->when($tipoId,  fn($q) => $q->where('tipo_id',  $tipoId))
+            ->when($marcaId, fn($q) => $q->where('marca_id', $marcaId))
+            ->when($estado,  fn($q) => $q->where('estado',   $estado))
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->appends($request->query());
+
+        $tipos        = TipoDispositivo::orderBy('nombre')->get(['id','nombre']);
+        $marcas       = Marca::orderBy('nombre')->get(['id','nombre']);
+        $estados      = $this->estados();
+
+        return view('inventario_dispositivos.index', compact('dispositivos','tipos','marcas','estados','search','tipoId','marcaId','estado'));
     }
 
     /**
@@ -241,21 +277,21 @@ class InventarioDispositivoController extends Controller
      * Función auxiliar para generar QR Code con Endroid v4.0.0
      */
     private function generarQRCode($data, $size = 200, $format = 'png')
-{
-    $writer = $format === 'svg' ? new SvgWriter() : new PngWriter();
+    {
+        $writer = $format === 'svg' ? new SvgWriter() : new PngWriter();
 
-    $result = Builder::create()
-        ->writer($writer)
-        ->data($data)
-        ->size((int)$size)
-        ->margin(10)
-        ->encoding(new Encoding('UTF-8'))
-        ->foregroundColor(new \Endroid\QrCode\Color\Color(0, 0, 0))
-        ->backgroundColor(new \Endroid\QrCode\Color\Color(255, 255, 255))
-        ->build();
+        $result = Builder::create()
+            ->writer($writer)
+            ->data($data)
+            ->size((int)$size)
+            ->margin(10)
+            ->encoding(new Encoding('UTF-8'))
+            ->foregroundColor(new \Endroid\QrCode\Color\Color(0, 0, 0))
+            ->backgroundColor(new \Endroid\QrCode\Color\Color(255, 255, 255))
+            ->build();
 
-    return $result->getString();
-}
+        return $result->getString();
+    }
 
     /**
      * Función auxiliar para generar datos del QR

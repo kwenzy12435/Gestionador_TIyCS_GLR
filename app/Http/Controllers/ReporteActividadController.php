@@ -14,14 +14,37 @@ class ReporteActividadController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $reportes = ReporteActividad::with(['colaborador', 'canal', 'naturaleza', 'usuarioTi'])
-            ->orderBy('fecha', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $reportes = ReporteActividad::with(['colaborador', 'canal', 'naturaleza', 'usuarioTi'])
+                ->whereRaw("
+                    actividad LIKE ? OR 
+                    descripcion LIKE ? OR
+                    fecha LIKE ? OR
+                    id IN (SELECT id FROM reporte_actividades WHERE colaborador_id IN 
+                          (SELECT id FROM colaboradores WHERE nombres LIKE ? OR apellidos LIKE ?)) OR
+                    id IN (SELECT id FROM reporte_actividades WHERE canal_id IN 
+                          (SELECT id FROM canales WHERE nombre LIKE ?)) OR
+                    id IN (SELECT id FROM reporte_actividades WHERE naturaleza_id IN 
+                          (SELECT id FROM naturalezas WHERE nombre LIKE ?)) OR
+                    id IN (SELECT id FROM reporte_actividades WHERE usuario_ti_id IN 
+                          (SELECT id FROM usuarios_ti WHERE usuario LIKE ? OR nombres LIKE ? OR apellidos LIKE ?))
+                ", array_fill(0, 12, "%$search%"))
+                ->orderBy('fecha', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $reportes = ReporteActividad::with(['colaborador', 'canal', 'naturaleza', 'usuarioTi'])
+                ->orderBy('fecha', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
             
-        return view('reporte_actividades.index', compact('reportes'));
+        return view('reporte_actividades.index', compact('reportes', 'search'));
     }
 
     /**

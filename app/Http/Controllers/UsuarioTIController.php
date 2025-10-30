@@ -8,10 +8,25 @@ use Illuminate\Support\Facades\Hash;
 
 class UsuarioTIController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = UsuarioTI::all();
-        return view('usuarios-ti.index', compact('usuarios'));
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos
+            $usuarios = UsuarioTI::whereRaw("
+                usuario LIKE ? OR 
+                nombres LIKE ? OR 
+                apellidos LIKE ? OR 
+                puesto LIKE ? OR 
+                telefono LIKE ? OR 
+                rol LIKE ?
+            ", array_fill(0, 6, "%$search%"))->get();
+        } else {
+            $usuarios = UsuarioTI::all();
+        }
+        
+        return view('usuarios-ti.index', compact('usuarios', 'search'));
     }
 
     public function create()

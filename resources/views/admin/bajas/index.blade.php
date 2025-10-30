@@ -1,128 +1,97 @@
 @extends('layouts.app')
+@section('title','Log de Bajas (ADMIN)')
 
-@section('title', 'Historial de Bajas - Sistema TI')
+@section('page-header')
+  <h1 class="h3 mb-0 fw-bold"><i class="bi bi-archive me-2"></i>Log de Bajas</h1>
+@endsection
+
+@section('header-actions')
+  {{-- Exportar PDF preservando filtros actuales --}}
+  <a href="{{ route('admin.bajas.export.pdf', request()->query()) }}" class="btn btn-outline-secondary">
+    <i class="bi bi-filetype-pdf me-1"></i> Exportar PDF
+  </a>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="fas fa-history me-2"></i>Historial de Bajas de Dispositivos
-                        </h4>
-                       
-                    </div>
-                </div>
+@include('Partials.flash')
 
-                <div class="card-body">
-                    <!-- Filtros de búsqueda -->
-                    <form action="{{ route('admin.bajas.search') }}" method="GET" class="mb-4">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <input type="text" name="search" class="form-control" 
-                                       placeholder="Buscar por modelo, serie, usuario..." 
-                                       value="{{ request('search') }}">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" name="fecha_desde" class="form-control" 
-                                       value="{{ request('fecha_desde') }}">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="date" name="fecha_hasta" class="form-control" 
-                                       value="{{ request('fecha_hasta') }}">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search me-1"></i>Buscar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    @if($bajas->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th width="80">ID</th>
-                                        <th>Fecha</th>
-                                        <th>Usuario TI</th>
-                                        <th>Dispositivo</th>
-                                        <th>Modelo/Serie</th>
-                                        <th>Usuario Asignado</th>
-                                        <th>Estado</th>
-                                        <th width="100">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($bajas as $baja)
-                                    <tr>
-                                        <td><strong>#{{ $baja->id }}</strong></td>
-                                        <td>
-                                            <small class="text-muted">
-                                                {{ \Carbon\Carbon::parse($baja->fecha)->format('d/m/Y') }}<br>
-                                                {{ \Carbon\Carbon::parse($baja->fecha)->format('H:i') }}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <div class="fw-bold">{{ $baja->ti_nombres }} {{ $baja->ti_apellidos }}</div>
-                                            <small class="text-muted">{{ $baja->ti_usuario }}</small>
-                                            @if($baja->ti_puesto)
-                                                <br><span class="badge bg-info">{{ $baja->ti_puesto }}</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="fw-bold">{{ $baja->marca_nombre }}</div>
-                                            <small class="text-muted">{{ $baja->modelo }}</small>
-                                        </td>
-                                        <td>
-                                            @if($baja->numero_serie)
-                                                <code>{{ $baja->numero_serie }}</code>
-                                            @else
-                                                <span class="text-muted">N/A</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($baja->usuario_nombre)
-                                                <span class="badge bg-success">{{ $baja->usuario_nombre }}</span>
-                                            @else
-                                                <span class="badge bg-secondary">Sin asignar</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-warning">{{ $baja->estado_texto }}</span>
-                                        </td>
-                                        <td>
-                                            <a href="{{ route('admin.bajas.show', $baja->id) }}" 
-                                               class="btn btn-sm btn-primary" title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Paginación -->
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="text-muted">
-                                Mostrando {{ $bajas->firstItem() }} - {{ $bajas->lastItem() }} de {{ $bajas->total() }} registros
-                            </div>
-                            {{ $bajas->links() }}
-                        </div>
-                    @else
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle fa-2x mb-3"></i>
-                            <h5>No se encontraron registros de bajas</h5>
-                            <p class="mb-0">No hay dispositivos dados de baja en el sistema.</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
+<div class="card p-3 shadow-sm admin-bajas">
+  {{-- Filtros --}}
+  <form method="GET" action="{{ route('admin.bajas.index') }}" class="mb-3" id="filtroBajas">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label">Buscar</label>
+        <input type="text" name="search" class="form-control"
+               placeholder="Modelo, serie, usuario, MAC, razón, TI, marca…"
+               value="{{ request('search','') }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label">Desde</label>
+        <input type="date" name="fecha_desde" class="form-control" value="{{ request('fecha_desde') }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label">Hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control" value="{{ request('fecha_hasta') }}">
+      </div>
+      <div class="col-12 col-md-2 d-grid">
+        <button class="btn btn-brand" type="submit"><i class="bi bi-search me-1"></i>Filtrar</button>
+      </div>
     </div>
+    <div class="mt-2 d-flex gap-2 flex-wrap">
+      <button class="btn btn-sm btn-outline-secondary" type="button" data-preset="hoy">Hoy</button>
+      <button class="btn btn-sm btn-outline-secondary" type="button" data-preset="7d">Últimos 7 días</button>
+      <button class="btn btn-sm btn-outline-secondary" type="button" data-preset="30d">Últimos 30 días</button>
+      <a href="{{ route('admin.bajas.index') }}" class="btn btn-sm btn-outline-danger">Limpiar</a>
+    </div>
+  </form>
+
+  {{-- Tabla --}}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>N.º Serie</th>
+          <th>Usuario</th>
+          <th>MAC</th>
+          <th>TI responsable</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($bajas as $b)
+          <tr>
+            <td>{{ \Carbon\Carbon::parse($b->fecha)->format('d/m/Y') }}</td>
+            <td>{{ $b->tipo }}</td>
+            <td>{{ $b->marca_nombre ?? '—' }}</td>
+            <td>{{ $b->modelo }}</td>
+            <td class="text-nowrap">{{ $b->numero_serie }}</td>
+            <td>{{ $b->usuario_nombre }}</td>
+            <td class="text-monospace">{{ $b->mac_address ?? '—' }}</td>
+            <td>{{ $b->ti_usuario ?? ($b->ti_nombres ? $b->ti_nombres.' '.$b->ti_apellidos : '—') }}</td>
+            <td class="text-end">
+              <a href="{{ route('admin.bajas.show', $b->id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="9" class="text-center text-muted py-3">No hay registros.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+
+  {{-- Paginación con filtros preservados --}}
+  <div class="mt-2">
+    {{ $bajas->withQueryString()->links() }}
+  </div>
 </div>
 @endsection
+
+@push('scripts')
+@vite('resources/js/admin_bajas.js')
+@endpush

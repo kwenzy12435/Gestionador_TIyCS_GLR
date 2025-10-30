@@ -43,82 +43,47 @@ Route::middleware('auth')->group(function () {
         ->name('usuarios-ti.actualizar-credenciales');
 
     // CRUD de Usuarios TI
-Route::middleware(['auth'])->group(function() {
-
-    Route::prefix('usuarios-ti')->name('usuarios-ti.')->group(function() {
-        Route::get('/', [UsuarioTIController::class, 'index'])->name('index');
-        Route::get('/create', [UsuarioTIController::class, 'create'])->name('create');
-        Route::post('/', [UsuarioTIController::class, 'store'])->name('store');
-        Route::get('/{usuario}/edit', [UsuarioTIController::class, 'edit'])->name('edit');
-        Route::put('/{usuario}', [UsuarioTIController::class, 'update'])->name('update');
-        Route::delete('/{usuario}', [UsuarioTIController::class, 'destroy'])->name('destroy');
-        Route::get('/{usuario}', [UsuarioTIController::class, 'show'])->name('show');
-    });
-        Route::post('/actualizar-credenciales', [UsuarioTIController::class, 'actualizarCredenciales'])
-         ->name('usuarios-ti.actualizarCredenciales');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::resource('usuarios-ti', UsuarioTIController::class);
 });
-    
-    // CRUD de Colaboradores
-    Route::resource('colaboradores', ColaboradorController::class)
-        ->names('colaboradores')
-        ->parameters(['colaboradores' => 'id']);
-
-    // CRUD de Inventario de Dispositivos
-    Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
-        ->parameters(['inventario-dispositivos' => 'id'])
-        ->names('inventario-dispositivos');
-
-    // Generar QR para dispositivos
-    Route::get('inventario-dispositivos/{id}/qr', [InventarioDispositivoController::class, 'generarQR'])
-        ->name('inventario-dispositivos.qr.descargar');
-
-    // CRUD de Licencias con rutas adicionales de seguridad
-    Route::resource('licencias', LicenciaController::class);
-    
-    // Rutas de confirmación de contraseña para licencias
-    Route::post('/licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
-        ->name('licencias.confirmar-password')
-        ->middleware('throttle:10,1');
-    
-    // Rutas para visualización de contraseñas de licencias
-    Route::get('licencias/{id}/ver-contrasena', [LicenciaController::class, 'verContrasena'])
-        ->name('licencias.ver-contrasena');
-    
-    Route::post('licencias/{id}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])
-        ->name('licencias.procesar-ver-contrasena');
-
-    Route::post('licencias/{id}/revelar-contrasena', [LicenciaController::class, 'revelarContrasena'])
-        ->name('licencias.revelar-contrasena');
-
-    // CRUD de Reportes de Actividades
-    Route::resource('reporte_actividades', ReporteActividadController::class)
-        ->parameters(['reporte_actividades' => 'id'])
-        ->names('reporte_actividades');
-
-    // CRUD de Bitácora de Respaldos
-    Route::resource('bitacora_respaldo', BitacoraRespaldoController::class)
-        ->names('bitacora_respaldo');
-
-    // CRUD de Artículos
-    Route::resource('articulos', ArticuloController::class);
-
-    // CRUD de Monitoreo de Red
+// CRUD de Colaboradores
+Route::middleware(['auth'])->group(function () {
+    Route::resource('reporte_actividades', ReporteActividadController::class);
+});
+//CRUD DE MONITOREO DE RED
+Route::middleware(['auth'])->group(function () {
     Route::resource('monitoreo-red', MonitoreoRedController::class);
-
-    // Configuración del Sistema (Admin)
-   Route::prefix('admin/configsistem')->group(function () {
-    Route::get('/', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index');
-    Route::get('/{tabla}', [ConfigSistemaController::class, 'index'])->name('admin.configsistem.index.tabla');
-    Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])->name('admin.configsistem.store');
-    Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])->name('admin.configsistem.update');
-    Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])->name('admin.configsistem.destroy');
-})->middleware('auth');
-    // Historial de Bajas (Admin)
-    Route::prefix('admin')->group(function () {
-        Route::get('/bajas', [LogBajasController::class, 'index'])->name('admin.bajas.index');
-        Route::get('/bajas/buscar', [LogBajasController::class, 'search'])->name('admin.bajas.search');
-        Route::get('/bajas/{id}', [LogBajasController::class, 'show'])->name('admin.bajas.show');
-        Route::get('/bajas/exportar/pdf', [LogBajasController::class, 'exportPdf'])->name('admin.bajas.export.pdf');
+});
+//log bajas
+Route::middleware(['auth', 'admin']) // <-- tu middleware de rol ADMIN
+    ->prefix('admin')
+    ->as('admin.')
+    ->group(function () {
+        Route::get('bajas', [LogBajasController::class, 'index'])->name('bajas.index');
+        Route::get('bajas/search', [LogBajasController::class, 'search'])->name('bajas.search'); // opcional (index ya delega a search)
+        Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
+        Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
     });
+    //licencias 
+    Route::middleware(['auth'])->group(function () {
+    Route::resource('licencias', LicenciaController::class);
 
+    // Extras
+    Route::get('licencias/por-expiar', [LicenciaController::class, 'licenciasPorExpiar'])
+        ->name('licencias.por_expiar');
+
+    // Revelar contraseña (AJAX)
+    Route::post('licencias/{id}/revelar', [LicenciaController::class, 'revelarContrasena'])
+        ->name('licencias.revelar');
+
+    // Flujo alterno por vista
+    Route::get('licencias/{id}/ver-contrasena', [LicenciaController::class, 'verContrasena'])
+        ->name('licencias.ver_contrasena');
+    Route::post('licencias/{id}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])
+        ->name('licencias.procesar_ver_contrasena');
+
+    // (opcional) endpoint genérico para confirmar password (no lo usamos en JS, ya que revelarContrasena valida)
+    Route::post('licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
+        ->name('licencias.confirmar_password');
+});
 });

@@ -1,0 +1,21 @@
+.admin-bajas {
+  .table th {
+    background: var(--brand);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+  }
+  .table td { vertical-align: middle; }
+
+  .form-control, .form-select {
+    border-radius: .5rem;
+  }
+
+  .btn-outline-secondary:hover {
+    background: var(--surface-2);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-bajas .table { font-size: .875rem; }
+}

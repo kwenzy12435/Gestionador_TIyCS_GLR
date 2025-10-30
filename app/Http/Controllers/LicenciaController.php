@@ -14,10 +14,25 @@ use Carbon\Carbon;
 
 class LicenciaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $licencias = Licencia::with(['colaborador', 'plataforma'])->get();
-        return view('licencias.index', compact('licencias'));
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $licencias = Licencia::with(['colaborador', 'plataforma'])
+                ->whereRaw("
+                    cuenta LIKE ? OR
+                    expiracion LIKE ? OR
+                    colaborador_id IN (SELECT id FROM colaboradores WHERE nombres LIKE ? OR apellidos LIKE ? OR email LIKE ?) OR
+                    plataforma_id IN (SELECT id FROM plataformas WHERE nombre LIKE ? OR descripcion LIKE ?)
+                ", array_fill(0, 7, "%$search%"))
+                ->get();
+        } else {
+            $licencias = Licencia::with(['colaborador', 'plataforma'])->get();
+        }
+        
+        return view('licencias.index', compact('licencias', 'search'));
     }
 
     public function create()
@@ -184,36 +199,48 @@ class LicenciaController extends Controller
                 ->with('error', 'Error al desencriptar la contraseña.');
         }
     }
-public function confirmarPassword(Request $request): JsonResponse
-{
-    $user = Auth::user();
 
-    if (!$user) {
-        return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
-    }
-
-    $request->validate([
-        'password' => 'required|string'
-    ]);
-
-    if (Hash::check($request->input('password'), $user->contrasena)) {
-        return response()->json(['success' => true]);
-    }
-
-    return response()->json(['success' => false, 'message' => 'Contraseña incorrecta'], 403);
-}
-    
-    public function licenciasPorExpiar()
+    public function confirmarPassword(Request $request): JsonResponse
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
+        }
+
+        $request->validate([
+            'password' => 'required|string'
+        ]);
+
+        if (Hash::check($request->input('password'), $user->contrasena)) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Contraseña incorrecta'], 403);
+    }
+    
+    public function licenciasPorExpiar(Request $request)
+    {
+        $search = $request->get('search');
         $fechaLimite = Carbon::now()->addDays(30);
         
-        $licencias = Licencia::with(['colaborador', 'plataforma'])
+        $query = Licencia::with(['colaborador', 'plataforma'])
             ->whereNotNull('expiracion')
             ->where('expiracion', '<=', $fechaLimite)
-            ->where('expiracion', '>=', Carbon::today())
-            ->orderBy('expiracion')
-            ->get();
+            ->where('expiracion', '>=', Carbon::today());
 
-        return view('licencias.por_expiar', compact('licencias'));
+        if ($search) {
+            // Aplicar búsqueda también para licencias por expirar
+            $query->whereRaw("
+                cuenta LIKE ? OR
+                expiracion LIKE ? OR
+                colaborador_id IN (SELECT id FROM colaboradores WHERE nombres LIKE ? OR apellidos LIKE ? OR email LIKE ?) OR
+                plataforma_id IN (SELECT id FROM plataformas WHERE nombre LIKE ? OR descripcion LIKE ?)
+            ", array_fill(0, 7, "%$search%"));
+        }
+
+        $licencias = $query->orderBy('expiracion')->get();
+
+        return view('licencias.por_expiar', compact('licencias', 'search'));
     }
 }

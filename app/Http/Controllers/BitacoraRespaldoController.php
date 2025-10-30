@@ -8,10 +8,28 @@ use Illuminate\Http\Request;
 
 class BitacoraRespaldoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $bitacoras = BitacoraRespaldo::with('usuarioTi')->orderBy('created_at', 'desc')->get();
-        return view('bitacora_respaldo.index', compact('bitacoras'));
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $bitacoras = BitacoraRespaldo::with('usuarioTi')
+                ->whereRaw("
+                    empresa_id LIKE ? OR
+                    estado LIKE ? OR
+                    ubicacion_guardado LIKE ? OR
+                    acciones_alternativas LIKE ? OR
+                    fecha_respaldo LIKE ? OR
+                    usuario_ti_id IN (SELECT id FROM usuarios_ti WHERE usuario LIKE ? OR nombres LIKE ? OR apellidos LIKE ? OR puesto LIKE ?)
+                ", array_fill(0, 9, "%$search%"))
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $bitacoras = BitacoraRespaldo::with('usuarioTi')->orderBy('created_at', 'desc')->get();
+        }
+        
+        return view('bitacora_respaldo.index', compact('bitacoras', 'search'));
     }
 
     public function create()

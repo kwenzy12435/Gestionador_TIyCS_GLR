@@ -1,0 +1,71 @@
+/* resources/scss/bajas.scss */
+
+/* ---- Utilidades accesibles compartidas ---- */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
+
+/* ---- Encabezado de página ---- */
+.page-header {
+  margin-bottom: var(--spacing-lg);
+  .page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-color);
+    display: flex; align-items: center; gap: var(--spacing-sm);
+  }
+}
+
+/* ---- Buscador rápido (header de página y en show) ---- */
+.bajas-quick-search {
+  min-width: 280px;
+  .input-group {
+    display: flex; align-items: stretch; gap: var(--spacing-sm);
+  }
+  input.form-control {
+    border-color: var(--border-color);
+    &:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+    }
+  }
+  .btn.btn-outline {
+    border-color: var(--border-color);
+    background: transparent;
+    &:hover { background: var(--gray-100); }
+  }
+}
+
+/* ---- Tabla de resultados ---- */
+.table {
+  th { white-space: nowrap; }
+  td code {
+    background: var(--gray-50);
+    padding: 0.1rem 0.35rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ---- Estados y badges ---- */
+.badge.bg-warning { color: var(--black); }
+.badge + .badge { margin-left: var(--spacing-xs); }
+
+/* ---- Tarjetas internas (resumen / bloques) ---- */
+.card .card-header {
+  background: var(--gray-50);
+  h5 { margin: 0; font-weight: 600; }
+}
+
+/* ---- Bloque vacío ---- */
+.card .card-body.text-center .fa-info-circle { opacity: .7; }
+
+/* ---- Responsivo ---- */
+@media (max-width: 768px) {
+  .bajas-quick-search { min-width: 220px; width: 100%; }
+  .page-header { gap: var(--spacing-sm); }
+}

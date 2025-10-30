@@ -8,10 +8,29 @@ use Illuminate\Support\Facades\DB;
 
 class ArticuloController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $articulos = Articulo::orderBy('created_at', 'desc')->get();
-        return view('Articulos.index', compact('articulos'));
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $articulos = Articulo::whereRaw("
+                nombre LIKE ? OR
+                descripcion LIKE ? OR
+                unidades LIKE ? OR
+                ubicacion LIKE ? OR
+                estado LIKE ? OR
+                fecha_ingreso LIKE ? OR
+                categoria_id IN (SELECT id FROM categorias WHERE nombre LIKE ? OR descripcion LIKE ?) OR
+                subcategoria_id IN (SELECT id FROM subcategorias WHERE nombre LIKE ? OR descripcion LIKE ?)
+            ", array_fill(0, 10, "%$search%"))
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $articulos = Articulo::orderBy('created_at', 'desc')->get();
+        }
+        
+        return view('Articulos.index', compact('articulos', 'search'));
     }
 
     public function create()

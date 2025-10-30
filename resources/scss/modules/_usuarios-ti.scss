@@ -1,0 +1,21 @@
+.usuarios-ti-table {
+  table {
+    th { background: var(--brand); color: #fff; }
+    td { vertical-align: middle; }
+  }
+
+  .form-control {
+    border-radius: .5rem;
+  }
+
+  .btn-outline-primary:hover {
+    background: var(--brand);
+    color: #fff;
+  }
+}
+
+@media (max-width: 768px) {
+  .usuarios-ti-table table {
+    font-size: .875rem;
+  }
+}

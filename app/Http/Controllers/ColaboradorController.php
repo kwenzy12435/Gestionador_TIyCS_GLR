@@ -12,10 +12,27 @@ class ColaboradorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $colaboradores = Colaborador::with('departamento')->get();
-        return view('colaboradores.index', compact('colaboradores'));
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $colaboradores = Colaborador::with('departamento')
+                ->whereRaw("
+                    usuario LIKE ? OR
+                    nombre LIKE ? OR
+                    apellidos LIKE ? OR
+                    puesto LIKE ? OR
+                    anydesk_id LIKE ? OR
+                    departamento_id IN (SELECT id FROM departamentos WHERE nombre LIKE ? OR descripcion LIKE ?)
+                ", array_fill(0, 7, "%$search%"))
+                ->get();
+        } else {
+            $colaboradores = Colaborador::with('departamento')->get();
+        }
+        
+        return view('colaboradores.index', compact('colaboradores', 'search'));
     }
 
     /**

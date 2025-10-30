@@ -9,14 +9,34 @@ use Carbon\Carbon;
 
 class MonitoreoRedController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $monitoreos = MonitoreoRed::with('usuarioResponsable')
-            ->orderBy('fecha', 'desc')
-            ->orderBy('hora', 'desc')
-            ->get();
+        $search = $request->get('search');
+        
+        if ($search) {
+            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
+            $monitoreos = MonitoreoRed::with('usuarioResponsable')
+                ->whereRaw("
+                    fecha LIKE ? OR
+                    hora LIKE ? OR
+                    velocidad_descarga LIKE ? OR
+                    velocidad_subida LIKE ? OR
+                    porcentaje_experiencia_wifi LIKE ? OR
+                    clientes_conectados LIKE ? OR
+                    observaciones LIKE ? OR
+                    responsable IN (SELECT id FROM usuarios_ti WHERE usuario LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)
+                ", array_fill(0, 10, "%$search%"))
+                ->orderBy('fecha', 'desc')
+                ->orderBy('hora', 'desc')
+                ->get();
+        } else {
+            $monitoreos = MonitoreoRed::with('usuarioResponsable')
+                ->orderBy('fecha', 'desc')
+                ->orderBy('hora', 'desc')
+                ->get();
+        }
             
-        return view('MonitoreoRed.index', compact('monitoreos'));
+        return view('MonitoreoRed.index', compact('monitoreos', 'search'));
     }
 
     public function create()
