@@ -13,7 +13,7 @@ use App\Http\Controllers\MonitoreoRedController;
 use App\Http\Controllers\ConfigSistemaController;
 use App\Http\Controllers\LogBajasController;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Middleware\AdminMiddleware; 
 // ========================
 // RUTAS PÚBLICAS / LOGIN
 // ========================
@@ -44,11 +44,11 @@ Route::middleware('auth')->group(function () {
     // ========================
     // USUARIOS TI (solo admin)
     // ========================
-    Route::middleware('admin')->group(function () {
-        Route::resource('usuarios-ti', UsuarioTIController::class)
-            ->parameters(['usuarios-ti' => 'usuarioTi'])
-            ->names('usuarios-ti');
-    });
+   Route::middleware(AdminMiddleware::class)->group(function () {
+    Route::resource('usuarios-ti', UsuarioTIController::class)
+        ->parameters(['usuarios-ti' => 'usuarioTi'])
+        ->names('usuarios-ti');
+});
 
     // ========================
     // REPORTES DE ACTIVIDAD
@@ -67,16 +67,15 @@ Route::middleware('auth')->group(function () {
     // ========================
     // LOG DE BAJAS (solo admin)
     // ========================
-    Route::middleware('admin')
-        ->prefix('admin')
-        ->as('admin.')
-        ->group(function () {
-            Route::get('bajas', [LogBajasController::class, 'index'])->name('bajas.index');
-            Route::get('bajas/search', [LogBajasController::class, 'search'])->name('bajas.search');
-            Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
-            Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
-        });
-
+  Route::middleware(AdminMiddleware::class)
+    ->prefix('admin')
+    ->as('admin.')
+    ->group(function () {
+        Route::get('bajas', [LogBajasController::class, 'index'])->name('bajas.index');
+        Route::get('bajas/search', [LogBajasController::class, 'search'])->name('bajas.search');
+        Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
+        Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
+    });
     // ========================
     // LICENCIAS
     // ========================
@@ -111,26 +110,18 @@ Route::prefix('licencias')->name('licencias.')->group(function () {
     // ========================
     // CONFIGURACIÓN DEL SISTEMA (solo admin)
     // ========================
-    Route::middleware('admin')
-        ->prefix('admin/configsistem')
-        ->as('admin.configsistem.')
-        ->group(function () {
-            Route::get('/{tabla?}', [ConfigSistemaController::class, 'index'])
-                ->where('tabla', '.*')
-                ->name('index');
-
-            Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])
-                ->name('store');
-
-            Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])
-                ->whereNumber('id')
-                ->name('update');
-
-            Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])
-                ->whereNumber('id')
-                ->name('destroy');
-        });
-
+Route::middleware(AdminMiddleware::class)
+    ->prefix('admin/configsistem')
+    ->as('admin.configsistem.')
+    ->group(function () {
+        Route::get('/{tabla?}', [ConfigSistemaController::class, 'index'])
+            ->where('tabla', '.*')->name('index');
+        Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])->name('store');
+        Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])
+            ->whereNumber('id')->name('update');
+        Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])
+            ->whereNumber('id')->name('destroy');
+    });
     // ========================
     // COLABORADORES
     // ========================

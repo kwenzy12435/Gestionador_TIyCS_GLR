@@ -8,42 +8,39 @@
 @endsection
 
 @section('header-actions')
-  <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#registroModal" 
-          data-action="create">
+  <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#registroModal" data-action="create">
     <i class="bi bi-plus-lg me-1"></i>Nuevo registro
   </button>
 @endsection
 
 @section('content')
-@include('Partials.flash')
+@include('partials.flash')
 
 <div class="admin-configsistem">
-  {{-- Tabs de catálogos --}}
   <ul class="nav nav-pills mb-3 flex-wrap gap-2">
     @foreach($tablas as $slug => $nombre)
       <li class="nav-item">
         <a class="nav-link {{ $tabla_actual === $slug ? 'active' : '' }}"
-           href="{{ route('admin.configsistem.index.tabla', $slug) }}">
+           href="{{ route('admin.configsistem.index', ['tabla' => $slug]) }}">
           {{ $nombre }}
         </a>
       </li>
     @endforeach
   </ul>
 
-  {{-- Encabezado --}}
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
     <div class="h5 mb-0 fw-semibold">{{ $nombre_tabla }}</div>
-    <form method="GET" action="{{ route('admin.configsistem.index.tabla', $tabla_actual) }}" class="d-flex gap-2">
+
+    <form method="GET" action="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}" class="d-flex gap-2">
       <input type="text" name="search" class="form-control form-control-sm" placeholder="Buscar..."
              value="{{ request('search') }}">
       <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
-      <a href="{{ route('admin.configsistem.index.tabla', $tabla_actual) }}" class="btn btn-sm btn-outline-danger">
+      <a href="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}" class="btn btn-sm btn-outline-danger">
         Limpiar
       </a>
     </form>
   </div>
 
-  {{-- Tabla --}}
   <div class="card p-3 shadow-sm">
     <div class="table-responsive">
       <table class="table align-middle">
@@ -60,7 +57,7 @@
         <tbody>
           @php
             $filtered = collect($datos);
-            if(request('search')){
+            if (request('search')) {
               $s = mb_strtolower(request('search'));
               $filtered = $filtered->filter(function($row) use ($s, $tabla_actual) {
                 $nombre = mb_strtolower($row->nombre ?? '');
@@ -88,8 +85,9 @@
                         data-bs-toggle="modal" data-bs-target="#registroModal">
                   <i class="bi bi-pencil"></i>
                 </button>
+
                 <form class="d-inline" method="POST"
-                      action="{{ route('admin.configsistem.destroy', [$tabla_actual, $r->id]) }}"
+                      action="{{ route('admin.configsistem.destroy', ['tabla' => $tabla_actual, 'id' => $r->id]) }}"
                       onsubmit="return confirmDelete(this)">
                   @csrf @method('DELETE')
                   <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
@@ -109,10 +107,10 @@
   </div>
 </div>
 
-{{-- Modal Crear/Editar --}}
 <div class="modal fade" id="registroModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" id="formRegistro" method="POST">
+    <form class="modal-content" id="formRegistro" method="POST"
+          action="{{ route('admin.configsistem.store', ['tabla' => $tabla_actual]) }}">
       @csrf
       <div class="modal-header">
         <h5 class="modal-title" id="modalTitle">Nuevo registro</h5>

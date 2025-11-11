@@ -12,8 +12,6 @@
 @endsection
 
 @section('content')
-@include('Partials.flash')
-
 <div class="card shadow-sm">
     <div class="card-header bg-white py-3">
         <div class="row align-items-center">
@@ -23,9 +21,7 @@
             <div class="col-md-6">
                 <form method="GET" class="d-flex">
                     <div class="input-group">
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Buscar por usuario, nombre, puesto..." 
-                               value="{{ $search ?? '' }}">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por usuario, nombre, puesto..." value="{{ $search ?? '' }}">
                         <button class="btn btn-outline-primary" type="submit">
                             <i class="bi bi-search"></i>
                         </button>
@@ -57,49 +53,36 @@
                     </thead>
                     <tbody>
                         @foreach($usuarios as $usuario)
+                        @php($key = $usuario->getRouteKey())
                         <tr>
                             <td><strong>#{{ $usuario->id }}</strong></td>
-                            <td>
-                                <div class="fw-semibold">{{ $usuario->usuario }}</div>
-                            </td>
+                            <td><div class="fw-semibold">{{ $usuario->usuario }}</div></td>
                             <td>
                                 {{ $usuario->nombres }} {{ $usuario->apellidos }}
                                 @if($usuario->id === auth()->id())
                                     <span class="badge bg-primary ms-1">Tú</span>
                                 @endif
                             </td>
-                            <td>{{ $usuario->puesto ?? '<span class="text-muted">—</span>' }}</td>
-                            <td>{{ $usuario->telefono ?? '<span class="text-muted">—</span>' }}</td>
+                            <td>{{ $usuario->puesto ?: '—' }}</td>
+                            <td>{{ $usuario->telefono ?: '—' }}</td>
                             <td>
-                                @php
-                                    $badgeClass = [
-                                        'ADMIN' => 'bg-danger',
-                                        'AUXILIAR-TI' => 'bg-info', 
-                                        'PERSONAL-TI' => 'bg-secondary'
-                                    ][$usuario->rol] ?? 'bg-secondary';
-                                @endphp
-                                <span class="badge {{ $badgeClass }}">
-                                    {{ $usuario->rol }}
-                                </span>
+                            <span class="badge {{ ['ADMIN'=>'bg-danger','AUXILIAR-TI'=>'bg-info','PERSONAL-TI'=>'bg-secondary'][$usuario->rol] ?? 'bg-secondary' }}">
+                              {{ $usuario->rol }}
+                            </span>
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('usuarios-ti.show', $usuario) }}" 
-                                       class="btn btn-outline-primary" title="Ver detalles">
+                                    <a href="{{ route('usuarios-ti.show', ['usuarioTi' => $key]) }}" class="btn btn-outline-primary" title="Ver detalles">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('usuarios-ti.edit', $usuario) }}" 
-                                       class="btn btn-outline-warning" title="Editar">
+                                    <a href="{{ route('usuarios-ti.edit', ['usuarioTi' => $key]) }}" class="btn btn-outline-warning" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($usuario->id !== auth()->id())
-                                        <form action="{{ route('usuarios-ti.destroy', $usuario) }}" 
-                                              method="POST" class="d-inline">
+                                        <form action="{{ route('usuarios-ti.destroy', ['usuarioTi' => $key]) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" 
-                                                    onclick="return confirm('¿Estás seguro de eliminar a {{ $usuario->usuario }}?')"
-                                                    title="Eliminar">
+                                            <button type="submit" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar a {{ $usuario->usuario }}?')">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -116,7 +99,6 @@
                 </table>
             </div>
 
-            <!-- Paginación -->
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <div class="text-muted">
                     Mostrando {{ $usuarios->firstItem() }} - {{ $usuarios->lastItem() }} de {{ $usuarios->total() }} usuarios

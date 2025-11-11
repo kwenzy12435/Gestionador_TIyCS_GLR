@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
+    
+    
+
     /**
      * Los middlewares globales que se ejecutan en cada solicitud
      */
@@ -41,21 +44,19 @@ class Kernel extends HttpKernel
     /**
      * Middlewares individuales (alias)
      */
-    protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+     protected $middlewareAliases = [
+        'admin'            => \App\Http\Middleware\AdminMiddleware::class,
+        'auth'             => \App\Http\Middleware\Authenticate::class,
+        'auth.basic'       => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'auth.session'     => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers'    => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can'              => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest'            => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'check.role' => \App\Http\Middleware\CheckRole::class,
-        
-        // TU MIDDLEWARE DE ADMIN
-        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'signed'           => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle'         => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified'         => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'check.role'       => \App\Http\Middleware\CheckRole::class,
     ];
 
     /**
