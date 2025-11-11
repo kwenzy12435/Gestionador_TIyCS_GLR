@@ -1,0 +1,14 @@
+.bitacora-table {
+  .table th {
+    background: var(--brand);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+  }
+  .table td { vertical-align: middle; }
+  .form-control { border-radius: .5rem; }
+}
+
+@media (max-width: 768px) {
+  .bitacora-table .table { font-size: .9rem; }
+}

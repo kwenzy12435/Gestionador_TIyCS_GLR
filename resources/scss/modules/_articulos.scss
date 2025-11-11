@@ -1,0 +1,15 @@
+.articulos-table {
+  .table th {
+    background: var(--brand);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+  }
+  .table td { vertical-align: middle; }
+  .badge { letter-spacing: .02em; }
+  .form-control { border-radius: .5rem; }
+}
+
+@media (max-width: 768px) {
+  .articulos-table .table { font-size: .9rem; }
+}

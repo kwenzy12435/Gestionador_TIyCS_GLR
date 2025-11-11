@@ -1,0 +1,91 @@
+/* ===============================
+   Dashboard principal
+   =============================== */
+
+.dashboard-wrapper {
+  padding-bottom: 1rem;
+}
+
+/* Tarjetas de resumen */
+.card-stat {
+  background: var(--bg-surface-elevated, rgba(20,20,20,.9));
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.card-stat-label {
+  font-size: .75rem;
+  letter-spacing: .08em;
+}
+
+.card-stat-value {
+  font-weight: 700;
+}
+
+.card-stat-trend {
+  font-size: .8rem;
+}
+
+.card-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 111, 97, 0.09); /* melón suave */
+  color: #ff6f61;
+  font-size: 1.35rem;
+}
+
+/* Tarjetas de gráficas */
+.card-chart {
+  background: var(--bg-surface-elevated, rgba(20,20,20,.9));
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.card-chart .card-header {
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Contenedor de canvas */
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+@media (min-width: 1400px) {
+  .chart-wrapper {
+    height: 320px;
+  }
+}
+
+/* Forzar que Chart.js use el tamaño del contenedor */
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Tabla de dashboard */
+.dashboard-table > :not(caption) > * > * {
+  border-color: rgba(255,255,255,0.06);
+}
+
+.dashboard-table thead {
+  background: rgba(255,255,255,0.04);
+}
+
+/* Botón outline con color de marca */
+.btn-outline-brand {
+  --bs-btn-color: #ff6f61;
+  --bs-btn-border-color: #ff6f61;
+  --bs-btn-hover-bg: #ff6f61;
+  --bs-btn-hover-border-color: #ff6f61;
+  --bs-btn-hover-color: #fff;
+}
+.bg-brand-soft {
+  background: rgba(255,111,97,.12) !important;
+}
+.text-brand {
+  color: #ff6f61 !important;
+}

@@ -155,4 +155,7 @@ class ConfigSistemaController extends Controller
     {
         return $this->modelos[$tabla] ?? null;
     }
+
+    //configuracion de admin
+    
 }

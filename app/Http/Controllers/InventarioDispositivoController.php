@@ -21,72 +21,73 @@ class InventarioDispositivoController extends Controller
 {
     private function estados(): array
     {
-        return ['nuevo', 'asignado', 'reparación'];
+        return ['nuevo', 'asignado', 'reparación', 'baja'];
     }
     
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $search      = trim((string)$request->input('search', ''));
-        $tipoId      = $request->input('tipo_id');
-        $marcaId     = $request->input('marca_id');
-        $estado      = $request->input('estado');
+        $search = trim((string)$request->input('search', ''));
+        $tipoId = $request->input('tipo_id');
+        $marcaId = $request->input('marca_id');
+        $estado = $request->input('estado');
 
         $dispositivos = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
-            ->when($search !== '', function ($q) use ($search) {
+            ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $search) . '%';
-                // Reemplazar múltiples OR con SQL directo para mejor rendimiento
-                $q->whereRaw("
-                    modelo LIKE ? OR 
-                    numero_serie LIKE ? OR 
-                    serie LIKE ? OR 
-                    mac LIKE ? OR 
-                    procesador LIKE ? OR 
-                    memoria_ram LIKE ? OR 
-                    ssd LIKE ? OR 
-                    hdd LIKE ? OR 
-                    color LIKE ? OR
-                    tipo_id IN (SELECT id FROM tipos_dispositivo WHERE nombre LIKE ?) OR
-                    marca_id IN (SELECT id FROM marcas WHERE nombre LIKE ?) OR
-                    colaborador_id IN (SELECT id FROM colaboradores WHERE nombre LIKE ? OR apellidos LIKE ? OR email LIKE ?)
-                ", array_fill(0, 14, $like));
+                $query->where(function($q) use ($like) {
+                    $q->where('modelo', 'LIKE', $like)
+                      ->orWhere('numero_serie', 'LIKE', $like)
+                      ->orWhere('serie', 'LIKE', $like)
+                      ->orWhere('mac', 'LIKE', $like)
+                      ->orWhere('procesador', 'LIKE', $like)
+                      ->orWhere('memoria_ram', 'LIKE', $like)
+                      ->orWhere('ssd', 'LIKE', $like)
+                      ->orWhere('hdd', 'LIKE', $like)
+                      ->orWhere('color', 'LIKE', $like)
+                      ->orWhereHas('tipo', function($q) use ($like) {
+                          $q->where('nombre', 'LIKE', $like);
+                      })
+                      ->orWhereHas('marca', function($q) use ($like) {
+                          $q->where('nombre', 'LIKE', $like);
+                      })
+                      ->orWhereHas('colaborador', function($q) use ($like) {
+                          $q->where('nombre', 'LIKE', $like)
+                            ->orWhere('apellidos', 'LIKE', $like)
+                            ->orWhere('usuario', 'LIKE', $like);
+                      });
+                });
             })
-            ->when($tipoId,  fn($q) => $q->where('tipo_id',  $tipoId))
+            ->when($tipoId, fn($q) => $q->where('tipo_id', $tipoId))
             ->when($marcaId, fn($q) => $q->where('marca_id', $marcaId))
-            ->when($estado,  fn($q) => $q->where('estado',   $estado))
+            ->when($estado, fn($q) => $q->where('estado', $estado))
+            ->orderBy('estado')
             ->orderByDesc('created_at')
             ->paginate(20)
-            ->appends($request->query());
+            ->withQueryString();
 
-        $tipos        = TipoDispositivo::orderBy('nombre')->get(['id','nombre']);
-        $marcas       = Marca::orderBy('nombre')->get(['id','nombre']);
-        $estados      = $this->estados();
+        $tipos = TipoDispositivo::orderBy('nombre')->get(['id','nombre']);
+        $marcas = Marca::orderBy('nombre')->get(['id','nombre']);
+        $estados = $this->estados();
 
-        return view('inventario_dispositivos.index', compact('dispositivos','tipos','marcas','estados','search','tipoId','marcaId','estado'));
+        return view('inventario_dispositivos.index', compact(
+            'dispositivos', 'tipos', 'marcas', 'estados', 'search', 'tipoId', 'marcaId', 'estado'
+        ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $tipos = TipoDispositivo::all();
-        $marcas = Marca::all();
-        $colaboradores = Colaborador::all();
-        $estados = ['nuevo', 'asignado', 'reparación'];
+        $tipos = TipoDispositivo::orderBy('nombre')->get();
+        $marcas = Marca::orderBy('nombre')->get();
+        $colaboradores = Colaborador::orderBy('nombre')->get();
+        $estados = $this->estados();
         
         return view('inventario_dispositivos.create', compact('tipos', 'marcas', 'colaboradores', 'estados'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'estado' => 'required|in:nuevo,asignado,reparación',
+            'estado' => 'required|in:nuevo,asignado,reparación,baja',
             'tipo_id' => 'required|exists:tipos_dispositivo,id',
             'marca_id' => 'required|exists:marcas,id',
             'mac' => 'nullable|string|max:50|unique:inventario_dispositivos|regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
@@ -124,52 +125,48 @@ class InventarioDispositivoController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
+    public function show(InventarioDispositivo $inventarioDispositivo)
     {  
-        $dispositivo = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])
-            ->findOrFail($id);
-
+        $inventarioDispositivo->load(['tipo', 'marca', 'colaborador']);
         
-        $qrData = $this->generarDatosQR($dispositivo);
+        $qrData = $this->generarDatosQR($inventarioDispositivo);
         $qrCodePng = $this->generarQRCode($qrData, 150, 'png');
         $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCodePng);
 
-        return view('inventario_dispositivos.show', compact('dispositivo', 'qrCodeBase64'));
+        return view('inventario_dispositivos.show', compact('inventarioDispositivo', 'qrCodeBase64'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function edit(InventarioDispositivo $inventarioDispositivo)
     {
-        $dispositivo = InventarioDispositivo::findOrFail($id);
-
-        $tipos = TipoDispositivo::all();
-        $marcas = Marca::all();
-        $colaboradores = Colaborador::all();
-        $estados = ['nuevo', 'asignado', 'reparación'];
+        $tipos = TipoDispositivo::orderBy('nombre')->get();
+        $marcas = Marca::orderBy('nombre')->get();
+        $colaboradores = Colaborador::orderBy('nombre')->get();
+        $estados = $this->estados();
         
-        return view('inventario_dispositivos.edit', compact('dispositivo', 'tipos', 'marcas', 'colaboradores', 'estados'));
+        return view('inventario_dispositivos.edit', compact('inventarioDispositivo', 'tipos', 'marcas', 'colaboradores', 'estados'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, InventarioDispositivo $inventarioDispositivo)
     {
-        $dispositivo = InventarioDispositivo::findOrFail($id);
-
         $validated = $request->validate([
-            'estado' => 'required|in:nuevo,asignado,reparación',
+            'estado' => 'required|in:nuevo,asignado,reparación,baja',
             'tipo_id' => 'required|exists:tipos_dispositivo,id',
             'marca_id' => 'required|exists:marcas,id',
-            'mac' => 'nullable|string|max:50|unique:inventario_dispositivos,mac,' . $id . '|regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
+            'mac' => [
+                'nullable', 
+                'string', 
+                'max:50', 
+                'regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
+                Rule::unique('inventario_dispositivos')->ignore($inventarioDispositivo->id)
+            ],
             'modelo' => 'required|string|max:100',
             'serie' => 'nullable|string|max:100',
-            'numero_serie' => 'required|string|max:100|unique:inventario_dispositivos,numero_serie,' . $id,
+            'numero_serie' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('inventario_dispositivos')->ignore($inventarioDispositivo->id)
+            ],
             'procesador' => 'nullable|string|max:100',
             'memoria_ram' => 'nullable|string|max:100',
             'ssd' => 'nullable|string|max:100',
@@ -188,7 +185,7 @@ class InventarioDispositivoController extends Controller
         ]);
 
         try {
-            $dispositivo->update($validated);
+            $inventarioDispositivo->update($validated);
 
             return redirect()->route('inventario-dispositivos.index')
                 ->with('success', 'Dispositivo actualizado exitosamente.');
@@ -200,30 +197,26 @@ class InventarioDispositivoController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function destroy(InventarioDispositivo $inventarioDispositivo)
     {
         try {
-            $dispositivo = InventarioDispositivo::with(['colaborador'])->findOrFail($id);
+            $inventarioDispositivo->load(['colaborador']);
             $usuario = auth()->user();
 
-            DB::transaction(function () use ($dispositivo, $usuario) {
-                $this->registrarBajaEnLog($dispositivo, $usuario);
-                $dispositivo->delete();
+            DB::transaction(function () use ($inventarioDispositivo, $usuario) {
+                $this->registrarBajaEnLog($inventarioDispositivo, $usuario);
+                $inventarioDispositivo->delete();
             });
             
-            return redirect()->back()->with('success', 'Dispositivo eliminado correctamente.');
+            return redirect()->route('inventario-dispositivos.index')
+                ->with('success', 'Dispositivo eliminado correctamente.');
             
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar el dispositivo: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el dispositivo: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Registrar baja en log (método auxiliar)
-     */
     private function registrarBajaEnLog($dispositivo, $usuario)
     {
         $nombreCompleto = $usuario->nombres . ' ' . ($usuario->apellidos ?? '');
@@ -248,34 +241,26 @@ class InventarioDispositivoController extends Controller
         ]);
     }
 
-    /**
-     * Generar QR para descargar
-     */
-    public function generarQR($id)
+    public function generarQR(InventarioDispositivo $inventarioDispositivo)
     {
         try {
-            $dispositivo = InventarioDispositivo::with(['tipo', 'marca', 'colaborador'])->findOrFail($id);
-            $texto = $this->generarDatosQR($dispositivo);
+            $inventarioDispositivo->load(['tipo', 'marca', 'colaborador']);
+            $texto = $this->generarDatosQR($inventarioDispositivo);
             $size = request('size', 300);
             $format = request('format', 'png');  
             $qrContent = $this->generarQRCode($texto, $size, $format);
             $contentType = $format === 'svg' ? 'image/svg+xml' : 'image/png';
-            $filename = "qr_dispositivo_{$id}.{$format}";
+            $filename = "qr_dispositivo_{$inventarioDispositivo->id}.{$format}";
 
             return response($qrContent, 200)
                     ->header('Content-Type', $contentType)
                     ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            abort(404, 'Dispositivo no encontrado');
         } catch (\Exception $e) {
             abort(500, 'Error al generar QR: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Función auxiliar para generar QR Code con Endroid v4.0.0
-     */
     private function generarQRCode($data, $size = 200, $format = 'png')
     {
         $writer = $format === 'svg' ? new SvgWriter() : new PngWriter();
@@ -286,16 +271,13 @@ class InventarioDispositivoController extends Controller
             ->size((int)$size)
             ->margin(10)
             ->encoding(new Encoding('UTF-8'))
-            ->foregroundColor(new \Endroid\QrCode\Color\Color(0, 0, 0))
-            ->backgroundColor(new \Endroid\QrCode\Color\Color(255, 255, 255))
+            ->foregroundColor(new Color(0, 0, 0))
+            ->backgroundColor(new Color(255, 255, 255))
             ->build();
 
         return $result->getString();
     }
 
-    /**
-     * Función auxiliar para generar datos del QR
-     */
     private function generarDatosQR($dispositivo)
     {
         if (!$dispositivo) {

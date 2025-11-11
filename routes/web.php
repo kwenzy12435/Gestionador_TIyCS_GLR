@@ -12,78 +12,151 @@ use App\Http\Controllers\ArticuloController;
 use App\Http\Controllers\MonitoreoRedController;
 use App\Http\Controllers\ConfigSistemaController;
 use App\Http\Controllers\LogBajasController;
+use App\Http\Controllers\DashboardController;
 
-// Redirección principal DIRECTA al login
+// ========================
+// RUTAS PÚBLICAS / LOGIN
+// ========================
+
 Route::get('/', function () {
-    return redirect('/login');
+    return redirect()->route('login');
 });
-Route::post('login', [Auth\LoginController::class, 'login'])
-    ->middleware('throttle:login');
 
-// Rutas de autenticación (públicas)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Rutas protegidas (requieren autenticación)
+// ========================
+// RUTAS PROTEGIDAS (AUTH)
+// ========================
+
 Route::middleware('auth')->group(function () {
-    
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-    
-    // Perfil de usuario
+
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/profile', function () {
         return redirect()->route('usuarios-ti.edit', auth()->id());
     })->name('profile.edit');
 
-    // Actualización de credenciales
     Route::put('/usuarios-ti/actualizar-credenciales', [UsuarioTIController::class, 'actualizarCredenciales'])
         ->name('usuarios-ti.actualizar-credenciales');
 
-    // CRUD de Usuarios TI
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::resource('usuarios-ti', UsuarioTIController::class);
-});
-// CRUD de Colaboradores
-Route::middleware(['auth'])->group(function () {
-    Route::resource('reporte_actividades', ReporteActividadController::class);
-});
-//CRUD DE MONITOREO DE RED
-Route::middleware(['auth'])->group(function () {
-    Route::resource('monitoreo-red', MonitoreoRedController::class);
-});
-//log bajas
-Route::middleware(['auth', 'admin']) // <-- tu middleware de rol ADMIN
-    ->prefix('admin')
-    ->as('admin.')
-    ->group(function () {
-        Route::get('bajas', [LogBajasController::class, 'index'])->name('bajas.index');
-        Route::get('bajas/search', [LogBajasController::class, 'search'])->name('bajas.search'); // opcional (index ya delega a search)
-        Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
-        Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
+    // ========================
+    // USUARIOS TI (solo admin)
+    // ========================
+    Route::middleware('admin')->group(function () {
+        Route::resource('usuarios-ti', UsuarioTIController::class)
+            ->parameters(['usuarios-ti' => 'usuarioTi'])
+            ->names('usuarios-ti');
     });
-    //licencias 
-    Route::middleware(['auth'])->group(function () {
-    Route::resource('licencias', LicenciaController::class);
 
-    // Extras
-    Route::get('licencias/por-expiar', [LicenciaController::class, 'licenciasPorExpiar'])
-        ->name('licencias.por_expiar');
+    // ========================
+    // REPORTES DE ACTIVIDAD
+    // ========================
+    Route::resource('reporte-actividades', ReporteActividadController::class)
+        ->parameters(['reporte-actividades' => 'reporteActividad'])
+        ->names('reporte-actividades');
 
-    // Revelar contraseña (AJAX)
-    Route::post('licencias/{id}/revelar', [LicenciaController::class, 'revelarContrasena'])
-        ->name('licencias.revelar');
+    // ========================
+    // MONITOREO DE RED
+    // ========================
+    Route::resource('monitoreo_red', MonitoreoRedController::class)
+        ->parameters(['monitoreo_red' => 'monitoreoRed'])
+        ->names('monitoreo_red');
 
-    // Flujo alterno por vista
-    Route::get('licencias/{id}/ver-contrasena', [LicenciaController::class, 'verContrasena'])
-        ->name('licencias.ver_contrasena');
-    Route::post('licencias/{id}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])
-        ->name('licencias.procesar_ver_contrasena');
+    // ========================
+    // LOG DE BAJAS (solo admin)
+    // ========================
+    Route::middleware('admin')
+        ->prefix('admin')
+        ->as('admin.')
+        ->group(function () {
+            Route::get('bajas', [LogBajasController::class, 'index'])->name('bajas.index');
+            Route::get('bajas/search', [LogBajasController::class, 'search'])->name('bajas.search');
+            Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
+            Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
+        });
 
-    // (opcional) endpoint genérico para confirmar password (no lo usamos en JS, ya que revelarContrasena valida)
-    Route::post('licencias/confirmar-password', [LicenciaController::class, 'confirmarPassword'])
-        ->name('licencias.confirmar_password');
+    // ========================
+    // LICENCIAS
+    // ========================
+Route::prefix('licencias')->name('licencias.')->group(function () {
+    // Rutas resource principales
+    Route::get('/', [LicenciaController::class, 'index'])->name('index');
+    Route::get('/create', [LicenciaController::class, 'create'])->name('create');
+    Route::post('/', [LicenciaController::class, 'store'])->name('store');
+    Route::get('/{licencia}', [LicenciaController::class, 'show'])->name('show');
+    Route::get('/{licencia}/edit', [LicenciaController::class, 'edit'])->name('edit');
+    Route::put('/{licencia}', [LicenciaController::class, 'update'])->name('update');
+    Route::delete('/{licencia}', [LicenciaController::class, 'destroy'])->name('destroy');
+    
+    // Rutas adicionales
+    Route::get('/por-expiar', [LicenciaController::class, 'licenciasPorExpiar'])->name('por-expiar');
+    Route::post('/{licencia}/revelar', [LicenciaController::class, 'revelarContrasena'])->name('revelar');
+    Route::get('/{licencia}/ver-contrasena', [LicenciaController::class, 'verContrasena'])->name('ver-contrasena');
+    Route::post('/{licencia}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])->name('procesar-ver-contrasena');
+    Route::post('/confirmar-password', [LicenciaController::class, 'confirmarPassword'])->name('confirmar-password');
 });
+    // ========================
+    // INVENTARIO DISPOSITIVOS
+    // ========================
+    Route::resource('inventario-dispositivos', InventarioDispositivoController::class)
+        ->parameters(['inventario-dispositivos' => 'inventarioDispositivo'])
+        ->names('inventario-dispositivos');
+
+    Route::get('inventario-dispositivos/{inventarioDispositivo}/qr', 
+        [InventarioDispositivoController::class, 'generarQR'])
+        ->name('inventario-dispositivos.qr');
+
+    // ========================
+    // CONFIGURACIÓN DEL SISTEMA (solo admin)
+    // ========================
+    Route::middleware('admin')
+        ->prefix('admin/configsistem')
+        ->as('admin.configsistem.')
+        ->group(function () {
+            Route::get('/{tabla?}', [ConfigSistemaController::class, 'index'])
+                ->where('tabla', '.*')
+                ->name('index');
+
+            Route::post('/{tabla}', [ConfigSistemaController::class, 'store'])
+                ->name('store');
+
+            Route::put('/{tabla}/{id}', [ConfigSistemaController::class, 'update'])
+                ->whereNumber('id')
+                ->name('update');
+
+            Route::delete('/{tabla}/{id}', [ConfigSistemaController::class, 'destroy'])
+                ->whereNumber('id')
+                ->name('destroy');
+        });
+
+    // ========================
+    // COLABORADORES
+    // ========================
+    Route::resource('colaboradores', ColaboradorController::class)
+        ->parameters(['colaboradores' => 'colaborador'])
+        ->names('colaboradores');
+
+    // ========================
+    // BITÁCORA DE RESPALDO
+    // ========================
+    Route::resource('bitacora-respaldo', BitacoraRespaldoController::class)
+        ->parameters(['bitacora-respaldo' => 'bitacoraRespaldo'])
+        ->names([
+            'index' => 'bitacora-respaldo.index',
+            'create' => 'bitacora-respaldo.create', 
+            'store' => 'bitacora-respaldo.store',
+            'show' => 'bitacora-respaldo.show',
+            'edit' => 'bitacora-respaldo.edit',
+            'update' => 'bitacora-respaldo.update',
+            'destroy' => 'bitacora-respaldo.destroy'
+        ]);
+
+    // ========================
+    // ARTÍCULOS
+    // ========================
+    Route::resource('articulos', ArticuloController::class)
+        ->parameters(['articulos' => 'articulo'])
+        ->names('articulos');
 });

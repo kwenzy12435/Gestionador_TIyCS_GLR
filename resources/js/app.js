@@ -2,6 +2,7 @@
 import 'bootstrap'                               
 import '../scss/app.scss'                         
 import 'bootstrap-icons/font/bootstrap-icons.css' 
+import './dashboard' 
 
 // Habilita tooltips si los necesitas
 document.addEventListener('DOMContentLoaded', () => {

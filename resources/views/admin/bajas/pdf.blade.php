@@ -1,65 +1,167 @@
-{{-- resources/views/admin/bajas/pdf.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Log de Bajas — Exportación</title>
-  <style>
-    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; color: #111; }
-    h1 { font-size: 18px; margin: 0 0 10px 0; }
-    .muted { color: #555; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; }
-    th { background: #e9786a; color: #fff; text-transform: uppercase; font-size: 11px; }
-    .right { text-align: right; }
-    .nowrap { white-space: nowrap; }
-    .small { font-size: 11px; }
-    .header { display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px; }
-  </style>
+    <meta charset="utf-8">
+    <title>Reporte de Bajas - {{ now()->format('d-m-Y') }}</title>
+    <style>
+        body { 
+            font-family: DejaVu Sans, Arial, sans-serif; 
+            font-size: 12px; 
+            color: #333; 
+            margin: 0;
+            padding: 15px;
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dc3545;
+        }
+        h1 { 
+            font-size: 20px; 
+            margin: 0; 
+            color: #dc3545;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px;
+        }
+        th { 
+            background: #dc3545; 
+            color: white; 
+            text-transform: uppercase; 
+            font-size: 10px;
+            padding: 8px 6px;
+            border: 1px solid #dc3545;
+        }
+        td { 
+            padding: 6px; 
+            border: 1px solid #ddd; 
+            font-size: 10px;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-nowrap { white-space: nowrap; }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        .bg-primary { background: #007bff; color: white; }
+        .bg-success { background: #28a745; color: white; }
+        .bg-warning { background: #ffc107; color: black; }
+        .bg-info { background: #17a2b8; color: white; }
+        .bg-secondary { background: #6c757d; color: white; }
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Log de Bajas</h1>
-    <div class="small muted">
-      Generado: {{ now()->format('d/m/Y H:i') }}<br>
-      Filtros:
-      @if(request('search')) “{{ request('search') }}” @else ninguno @endif
-      @if(request('fecha_desde')) · desde {{ \Carbon\Carbon::parse(request('fecha_desde'))->format('d/m/Y') }} @endif
-      @if(request('fecha_hasta')) · hasta {{ \Carbon\Carbon::parse(request('fecha_hasta'))->format('d/m/Y') }} @endif
+    <!-- Encabezado -->
+    <div class="header">
+        <div>
+            <h1>REPORTE DE BAJAS DE INVENTARIO</h1>
+            <p class="subtitle">Sistema de Gestión TI - {{ now()->format('d/m/Y H:i') }}</p>
+        </div>
+        <div style="text-align: right;">
+            <strong>Total de registros:</strong> {{ $bajas->count() }}<br>
+            <small>Página 1 de 1</small>
+        </div>
     </div>
-  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th class="nowrap">Fecha</th>
-        <th>Tipo</th>
-        <th>Marca</th>
-        <th>Modelo</th>
-        <th>N.º Serie</th>
-        <th>Usuario</th>
-        <th>MAC</th>
-        <th>TI Responsable</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($bajas as $b)
-        <tr>
-          <td class="nowrap">{{ \Carbon\Carbon::parse($b->fecha)->format('d/m/Y') }}</td>
-          <td>{{ $b->tipo }}</td>
-          <td>{{ $b->marca_nombre ?? '—' }}</td>
-          <td>{{ $b->modelo }}</td>
-          <td class="nowrap">{{ $b->numero_serie }}</td>
-          <td>{{ $b->usuario_nombre }}</td>
-          <td class="nowrap">{{ $b->mac_address ?? '—' }}</td>
-          <td>
-            {{ $b->ti_nombres ? $b->ti_nombres.' '.$b->ti_apellidos : '—' }}
-          </td>
-        </tr>
-      @empty
-        <tr><td colspan="8" class="right muted">Sin resultados.</td></tr>
-      @endforelse
-    </tbody>
-  </table>
+    <!-- Información de Filtros -->
+    @if(!empty(array_filter($filtrosAplicados)))
+    <div class="info-box">
+        <strong>Filtros aplicados:</strong>
+        @if($filtrosAplicados['search'])
+            <span class="badge bg-primary">Búsqueda: "{{ $filtrosAplicados['search'] }}"</span>
+        @endif
+        @if($filtrosAplicados['tipo'])
+            <span class="badge bg-success">Tipo: {{ $filtrosAplicados['tipo'] }}</span>
+        @endif
+        @if($filtrosAplicados['fecha_desde'])
+            <span class="badge bg-warning">Desde: {{ \Carbon\Carbon::parse($filtrosAplicados['fecha_desde'])->format('d/m/Y') }}</span>
+        @endif
+        @if($filtrosAplicados['fecha_hasta'])
+            <span class="badge bg-info">Hasta: {{ \Carbon\Carbon::parse($filtrosAplicados['fecha_hasta'])->format('d/m/Y') }}</span>
+        @endif
+    </div>
+    @endif
+
+    <!-- Tabla de Bajas -->
+    <table>
+        <thead>
+            <tr>
+                <th width="80">Fecha</th>
+                <th width="70">Tipo</th>
+                <th width="80">Marca</th>
+                <th>Modelo</th>
+                <th width="100">N.º Serie</th>
+                <th>Usuario</th>
+                <th width="120">MAC</th>
+                <th>TI Responsable</th>
+                <th width="80">Razón</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($bajas as $baja)
+                <tr>
+                    <td class="text-nowrap">
+                        {{ $baja->fecha ? \Carbon\Carbon::parse($baja->fecha)->format('d/m/Y') : '—' }}
+                    </td>
+                    <td>{{ $baja->tipo ?? '—' }}</td>
+                    <td>{{ $baja->marca_nombre ?? '—' }}</td>
+                    <td>{{ $baja->modelo ?? '—' }}</td>
+                    <td class="text-nowrap">{{ $baja->numero_serie ?? '—' }}</td>
+                    <td>{{ $baja->usuario_nombre ?? '—' }}</td>
+                    <td class="text-nowrap">{{ $baja->mac_address ?? '—' }}</td>
+                    <td>
+                        {{ $baja->ti_nombres ? $baja->ti_nombres . ' ' . $baja->ti_apellidos : ($baja->ti_usuario ?? '—') }}
+                    </td>
+                    <td>{{ $baja->razon_baja ?? '—' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="9" class="text-center" style="padding: 20px;">
+                        No se encontraron registros de bajas con los filtros aplicados
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <!-- Pie de página -->
+    <div class="footer">
+        <strong>Sistema de Gestión TI</strong> | 
+        Generado el {{ now()->format('d/m/Y \a \l\a\s H:i') }} | 
+        Página 1 de 1
+    </div>
 </body>
 </html>

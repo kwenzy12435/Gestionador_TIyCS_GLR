@@ -6,135 +6,100 @@ use App\Models\Colaborador;
 use App\Models\Departamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class ColaboradorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $search = $request->get('search');
         
-        if ($search) {
-            // Búsqueda usando SQL directo con LIKE para múltiples campos y relaciones
-            $colaboradores = Colaborador::with('departamento')
-                ->whereRaw("
-                    usuario LIKE ? OR
-                    nombre LIKE ? OR
-                    apellidos LIKE ? OR
-                    puesto LIKE ? OR
-                    anydesk_id LIKE ? OR
-                    departamento_id IN (SELECT id FROM departamentos WHERE nombre LIKE ? OR descripcion LIKE ?)
-                ", array_fill(0, 7, "%$search%"))
-                ->get();
-        } else {
-            $colaboradores = Colaborador::with('departamento')->get();
-        }
+        $colaboradores = Colaborador::with('departamento')
+            ->when($search, function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('usuario', 'LIKE', "%{$search}%")
+                      ->orWhere('nombre', 'LIKE', "%{$search}%")
+                      ->orWhere('apellidos', 'LIKE', "%{$search}%")
+                      ->orWhere('puesto', 'LIKE', "%{$search}%")
+                      ->orWhere('anydesk_id', 'LIKE', "%{$search}%")
+                      ->orWhereHas('departamento', function($q) use ($search) {
+                          $q->where('nombre', 'LIKE', "%{$search}%")
+                            ->orWhere('descripcion', 'LIKE', "%{$search}%");
+                      });
+                });
+            })
+            ->orderBy('nombre')
+            ->orderBy('apellidos')
+            ->get();
         
         return view('colaboradores.index', compact('colaboradores', 'search'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $departamentos = Departamento::all();
+        $departamentos = Departamento::orderBy('nombre')->get();
         return view('colaboradores.create', compact('departamentos'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'usuario' => 'required|string|max:100|unique:colaboradores',
             'nombre' => 'required|string|max:100',
             'apellidos' => 'nullable|string|max:100',
             'puesto' => 'nullable|string|max:100',
             'departamento_id' => 'nullable|exists:departamentos,id',
             'anydesk_id' => 'nullable|string|max:50|unique:colaboradores',
-        
         ]);
 
-        Colaborador::create([
-            'usuario' => $request->usuario,
-            'nombre' => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'puesto' => $request->puesto,
-            'departamento_id' => $request->departamento_id,
-            'anydesk_id' => $request->anydesk_id,
-        
-        ]);
+        Colaborador::create($validated);
 
         return redirect()->route('colaboradores.index')
             ->with('success', 'Colaborador creado exitosamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
+    public function show(Colaborador $colaborador)
     {
-        $colaborador = Colaborador::with('departamento')->findOrFail($id);
+        $colaborador->load('departamento');
         return view('colaboradores.show', compact('colaborador'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function edit(Colaborador $colaborador)
     {
-        $colaborador = Colaborador::findOrFail($id);
-        $departamentos = Departamento::all();
+        $departamentos = Departamento::orderBy('nombre')->get();
         return view('colaboradores.edit', compact('colaborador', 'departamentos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, Colaborador $colaborador)
     {
-        $colaborador = Colaborador::findOrFail($id);
-        
-        $request->validate([
-            'usuario' => 'required|string|max:100|unique:colaboradores,usuario,' . $id,
+        $validated = $request->validate([
+            'usuario' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('colaboradores')->ignore($colaborador->id)
+            ],
             'nombre' => 'required|string|max:100',
             'apellidos' => 'nullable|string|max:100',
             'puesto' => 'nullable|string|max:100',
             'departamento_id' => 'nullable|exists:departamentos,id',
-            'anydesk_id' => 'nullable|string|max:50|unique:colaboradores,anydesk_id,' . $id,
-           
+            'anydesk_id' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('colaboradores')->ignore($colaborador->id)
+            ],
         ]);
 
-        $data = [
-            'usuario' => $request->usuario,
-            'nombre' => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'puesto' => $request->puesto,
-            'departamento_id' => $request->departamento_id,
-            'anydesk_id' => $request->anydesk_id
-        ];
-
-        if ($request->filled('contrasena')) {
-            $data['contrasena'] = Hash::make($request->contrasena);
-        }
-
-        $colaborador->update($data);
+        $colaborador->update($validated);
 
         return redirect()->route('colaboradores.index')
             ->with('success', 'Colaborador actualizado exitosamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function destroy(Colaborador $colaborador)
     {
         try {
-            $colaborador = Colaborador::findOrFail($id);
             $colaborador->delete();
 
             return redirect()->route('colaboradores.index')
@@ -142,7 +107,7 @@ class ColaboradorController extends Controller
                 
         } catch (\Exception $e) {
             return redirect()->route('colaboradores.index')
-                ->with('error', 'Error al eliminar el colaborador: ' . $e->getMessage());
+                ->with('error', 'No se pudo eliminar el colaborador. Puede que tenga registros relacionados.');
         }
     }
 }
