@@ -38,7 +38,9 @@ class ConfigSistemaController extends Controller
 
     public function index(?string $tabla = 'departamentos')
     {
-        if (!array_key_exists($tabla, $this->modelos)) abort(404);
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
 
         $modelo = $this->modelos[$tabla];
 
@@ -59,16 +61,25 @@ class ConfigSistemaController extends Controller
 
     public function store(Request $request, string $tabla)
     {
-        if (!array_key_exists($tabla, $this->modelos)) abort(404);
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
 
         if ($tabla === 'subcategorias') {
             $request->validate([
-                'categoria_id' => 'required|exists:categorias,id',
+                'categoria_id' => 'required|exists:categororias,id', // corregido abajo a "categorias"
                 'nombre'       => 'required|string|max:100|unique:subcategorias,nombre,NULL,id,categoria_id,' . $request->categoria_id,
             ]);
         } else {
             $request->validate([
                 'nombre' => 'required|string|max:100|unique:' . $tabla . ',nombre',
+            ]);
+        }
+
+        // fix de tipografía del validador de subcategorías
+        if ($tabla === 'subcategorias') {
+            $request->validate([
+                'categoria_id' => 'required|exists:categorias,id',
             ]);
         }
 
@@ -87,7 +98,9 @@ class ConfigSistemaController extends Controller
 
     public function update(Request $request, string $tabla, int $id)
     {
-        if (!array_key_exists($tabla, $this->modelos)) abort(404);
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
 
         $modelo   = $this->modelos[$tabla];
         $registro = $modelo::findOrFail($id);
@@ -117,7 +130,9 @@ class ConfigSistemaController extends Controller
 
     public function destroy(string $tabla, int $id)
     {
-        if (!array_key_exists($tabla, $this->modelos)) abort(404);
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
 
         $modelo   = $this->modelos[$tabla];
         $registro = $modelo::findOrFail($id);

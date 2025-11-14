@@ -8,20 +8,23 @@
 @endsection
 
 @section('header-actions')
-  <button class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#registroModal" data-action="create">
+  <button class="btn btn-brand"
+          data-bs-toggle="modal"
+          data-bs-target="#registroModal"
+          data-action="create">
     <i class="bi bi-plus-lg me-1"></i>Nuevo registro
   </button>
 @endsection
 
 @section('content')
-@include('partials.flash')
 
 <div class="admin-configsistem">
   <ul class="nav nav-pills mb-3 flex-wrap gap-2">
     @foreach($tablas as $slug => $nombre)
       <li class="nav-item">
         <a class="nav-link {{ $tabla_actual === $slug ? 'active' : '' }}"
-           href="{{ route('admin.configsistem.index', ['tabla' => $slug]) }}">
+           href="{{ route('admin.configsistem.index', ['tabla' => $slug]) }}"
+           data-loading="true">
           {{ $nombre }}
         </a>
       </li>
@@ -31,11 +34,15 @@
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
     <div class="h5 mb-0 fw-semibold">{{ $nombre_tabla }}</div>
 
-    <form method="GET" action="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}" class="d-flex gap-2">
+    <form method="GET"
+          action="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}"
+          class="d-flex gap-2">
       <input type="text" name="search" class="form-control form-control-sm" placeholder="Buscar..."
              value="{{ request('search') }}">
       <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
-      <a href="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}" class="btn btn-sm btn-outline-danger">
+      <a href="{{ route('admin.configsistem.index', ['tabla' => $tabla_actual]) }}"
+         class="btn btn-sm btn-outline-danger"
+         data-loading="true">
         Limpiar
       </a>
     </form>
@@ -86,17 +93,25 @@
                   <i class="bi bi-pencil"></i>
                 </button>
 
+                {{-- ✅ Eliminación con modal de confirmación (sin alert nativo) --}}
                 <form class="d-inline" method="POST"
                       action="{{ route('admin.configsistem.destroy', ['tabla' => $tabla_actual, 'id' => $r->id]) }}"
-                      onsubmit="return confirmDelete(this)">
-                  @csrf @method('DELETE')
-                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                      data-confirm="¿Estás seguro de eliminar «{{ $r->nombre }}»?"
+                      data-confirm-title="Eliminar registro"
+                      data-confirm-yes="Sí, eliminar"
+                      data-confirm-variant="danger">
+                  @csrf
+                  @method('DELETE')
+                  <button class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
                 </form>
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="{{ $tabla_actual === 'subcategorias' ? 4 : 3 }}" class="text-center text-muted py-3">
+              <td colspan="{{ $tabla_actual === 'subcategorias' ? 4 : 3 }}"
+                  class="text-center text-muted py-3">
                 No hay registros.
               </td>
             </tr>
@@ -107,11 +122,13 @@
   </div>
 </div>
 
+{{-- Modal Create/Edit --}}
 <div class="modal fade" id="registroModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form class="modal-content" id="formRegistro" method="POST"
           action="{{ route('admin.configsistem.store', ['tabla' => $tabla_actual]) }}">
       @csrf
+      <input type="hidden" name="_method" id="methodSpoof" value="POST">
       <div class="modal-header">
         <h5 class="modal-title" id="modalTitle">Nuevo registro</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -149,5 +166,46 @@
 @endsection
 
 @push('scripts')
-  @vite('resources/js/admin_configsistem.js')
+<script>
+(function () {
+  const modalEl   = document.getElementById('registroModal');
+  const form      = document.getElementById('formRegistro');
+  const title     = document.getElementById('modalTitle');
+  const nombre    = document.getElementById('nombre');
+  const methodInp = document.getElementById('methodSpoof');
+  const categoria = document.getElementById('categoriaId');
+
+  function setFormToCreate() {
+    title.textContent = 'Nuevo registro';
+    form.action = @json(route('admin.configsistem.store', ['tabla' => $tabla_actual]));
+    methodInp.value = 'POST';
+    nombre.value = '';
+    if (categoria) categoria.value = '';
+  }
+
+  function setFormToEdit(id, currentNombre, currentCategoriaId) {
+    title.textContent = 'Editar registro';
+    form.action = @json(route('admin.configsistem.update', ['tabla' => $tabla_actual, 'id' => 'ID_PLACEHOLDER'])).replace('ID_PLACEHOLDER', id);
+    methodInp.value = 'PUT';
+    nombre.value = currentNombre || '';
+    if (categoria && typeof currentCategoriaId !== 'undefined') {
+      categoria.value = currentCategoriaId || '';
+    }
+  }
+
+  modalEl.addEventListener('show.bs.modal', function (ev) {
+    const btn = ev.relatedTarget;
+    const action = btn?.getAttribute('data-action') || 'create';
+
+    if (action === 'edit') {
+      const id   = btn.getAttribute('data-id');
+      const nom  = btn.getAttribute('data-nombre') || '';
+      const cat  = btn.getAttribute('data-categoria_id') || '';
+      setFormToEdit(id, nom, cat);
+    } else {
+      setFormToCreate();
+    }
+  });
+})();
+</script>
 @endpush

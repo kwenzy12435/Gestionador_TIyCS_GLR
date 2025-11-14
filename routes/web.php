@@ -53,9 +53,9 @@ Route::middleware('auth')->group(function () {
     // ========================
     // REPORTES DE ACTIVIDAD
     // ========================
-    Route::resource('reporte-actividades', ReporteActividadController::class)
+    Route::resource('reporte_actividades', ReporteActividadController::class)
         ->parameters(['reporte-actividades' => 'reporteActividad'])
-        ->names('reporte-actividades');
+        ->names('reporte_actividades');
 
     // ========================
     // MONITOREO DE RED

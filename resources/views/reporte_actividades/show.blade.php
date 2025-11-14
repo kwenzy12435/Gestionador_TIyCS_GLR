@@ -6,7 +6,7 @@
 @endsection
 
 @section('content')
-@include('Partials.flash')
+@include('partials.flash')
 
 <div class="card shadow-sm">
   <div class="card-header bg-white">
@@ -22,7 +22,7 @@
           <form action="{{ route('reporte_actividades.destroy', $reporte->id) }}" method="POST" class="d-inline">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger btn-sm" 
+            <button type="submit" class="btn btn-danger btn-sm"
                     onclick="return confirm('¿Estás seguro de eliminar este reporte?')">
               <i class="bi bi-trash me-1"></i>Eliminar
             </button>
@@ -40,7 +40,7 @@
           <p><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($reporte->fecha)->format('d/m/Y') }}</p>
           <p><strong>Actividad:</strong> {{ $reporte->actividad }}</p>
         </div>
-        
+
         <div>
           <h6 class="fw-semibold text-primary mb-2"><i class="bi bi-card-text me-2"></i>Descripción</h6>
           <div class="bg-light p-3 rounded">
@@ -53,31 +53,23 @@
         <div class="border-bottom pb-3 mb-3">
           <h6 class="fw-semibold text-primary mb-2"><i class="bi bi-people me-2"></i>Relaciones</h6>
           <p>
-            <strong>Colaborador:</strong> 
+            <strong>Colaborador:</strong>
             @if($reporte->colaborador)
-              <span class="badge bg-info">{{ $reporte->colaborador->nombres }} {{ $reporte->colaborador->apellidos }}</span>
+              <span class="badge bg-info">{{ $reporte->colaborador->nombre_completo }}</span>
             @else
               <span class="text-muted">—</span>
             @endif
           </p>
           <p>
-            <strong>Canal:</strong> 
-            @if($reporte->canal)
-              <span class="badge bg-secondary">{{ $reporte->canal->nombre }}</span>
-            @else
-              <span class="text-muted">—</span>
-            @endif
+            <strong>Canal:</strong>
+            {{ $reporte->canal?->nombre ?? '—' }}
           </p>
           <p>
-            <strong>Naturaleza:</strong> 
-            @if($reporte->naturaleza)
-              <span class="badge bg-success">{{ $reporte->naturaleza->nombre }}</span>
-            @else
-              <span class="text-muted">—</span>
-            @endif
+            <strong>Naturaleza:</strong>
+            {{ $reporte->naturaleza?->nombre ?? '—' }}
           </p>
           <p>
-            <strong>Usuario TI:</strong> 
+            <strong>Usuario TI:</strong>
             @if($reporte->usuarioTi)
               <span class="badge bg-primary">{{ $reporte->usuarioTi->usuario }}</span>
               <small class="text-muted">({{ $reporte->usuarioTi->nombres }} {{ $reporte->usuarioTi->apellidos }})</small>

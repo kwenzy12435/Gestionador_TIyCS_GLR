@@ -30,14 +30,14 @@ class ColaboradorController extends Controller
             })
             ->orderBy('nombre')
             ->orderBy('apellidos')
-            ->get();
+            ->paginate();
         
         return view('colaboradores.index', compact('colaboradores', 'search'));
     }
 
     public function create()
     {
-        $departamentos = Departamento::orderBy('nombre')->get();
+        $departamentos = Departamento::orderBy('nombre')->paginate();
         return view('colaboradores.create', compact('departamentos'));
     }
 
@@ -66,7 +66,7 @@ class ColaboradorController extends Controller
 
     public function edit(Colaborador $colaborador)
     {
-        $departamentos = Departamento::orderBy('nombre')->get();
+        $departamentos = Departamento::orderBy('nombre')->paginate();
         return view('colaboradores.edit', compact('colaborador', 'departamentos'));
     }
 

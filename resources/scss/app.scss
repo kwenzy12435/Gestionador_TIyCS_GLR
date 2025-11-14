@@ -1,74 +1,68 @@
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
+@import "tom-select/dist/css/tom-select.bootstrap5.css";
 
-// Definición de la paleta principal en variables SCSS
+// ========================
+// Paleta / Variables base
+// ========================
 $color-brand: #e9786a;
 $color-brand-600: #d96c60;
 $color-brand-700: #c45f54;
 
-// Definición de Variables CSS (Custom Properties) para el tema
 :root {
-    --brand: #{$color-brand};
-    --brand-600: #{$color-brand-600};
-    --brand-700: #{$color-brand-700};
+  --brand: #{$color-brand};
+  --brand-600: #{$color-brand-600};
+  --brand-700: #{$color-brand-700};
 
-    --surface: #ffffff;
-    --surface-2: #f6f7f9;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-    --shadow: 0 10px 30px rgba(0,0,0,.08);
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 12px 30px rgba(0,0,0,.08);
+
+  --radius: 12px;
+  --radius-sm: 10px;
+  --radius-lg: 16px;
+  --tr: .25s cubic-bezier(.2,.6,.2,1);
 }
 
-// Override para Dark Mode
+// ========================
+// (Opcional) Dark Mode
+// ========================
 html[data-theme="dark"] {
-    --surface: #111315;
-    --surface-2: #1a1d20;
-    --text: #e5e7eb;
-    --muted: #9ca3af;
-    --border: #2b2f33;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-    
-    // 🔥 CORRECCIÓN DE ESPECIFICIDAD APLICADA AQUÍ (Tablas y Formularios)
-    
-    // Tablas
-    .table {
-        // Asegura que el color de texto de la tabla sea claro en Dark Mode
-        color: var(--text); 
-        
-        tbody td {
-            color: var(--text); 
-        }
+  --surface: #111315;
+  --surface-2: #1a1d20;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #2b2f33;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
 
-        tbody tr {
-            background: var(--surface);
-            border-color: var(--border);
-            
-            &:hover {
-                background: var(--surface-2);
-            }
-        }
+  .table {
+    color: var(--text);
+    tbody td { color: var(--text); }
+    tbody tr {
+      background: var(--surface);
+      border-color: var(--border);
+      &:hover { background: var(--surface-2); }
     }
-    
-    // Formularios
-    .form-control, .form-select {
-        background: var(--surface);
-        color: var(--text);
-        border-color: var(--border);
-    }
-    
-    .input-group-text {
-        background: var(--surface-2);
-        border-color: var(--border);
-        color: var(--muted);
-    }
-    
-    // Botones Outline genéricos (Asegura visibilidad en Dark Mode)
-    // Se deja el ciclo SCSS fuera del selector de HTML ya que usa variables de SCSS
+  }
+  .form-control, .form-select {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .input-group-text {
+    background: var(--surface-2);
+    border-color: var(--border);
+    color: var(--muted);
+  }
 }
 
-// Importación de Módulos (parciales de componentes)
+// ========================
+// Módulos (tus parciales)
+// ========================
 @import "modules/dashboard";
 @import "modules/inventario_dispositivos";
 @import "modules/licencias";
@@ -80,225 +74,344 @@ html[data-theme="dark"] {
 @import "modules/usuarios-ti";
 @import "modules/admin_bajas";
 
-// Importación final de Bootstrap
+// ========================
+// Bootstrap al final
+// ========================
 @import "bootstrap/scss/bootstrap";
 
-// --- Estilos Base y Layout ---
-
+// ========================
+// Base & layout
+// ========================
 body {
-    background: var(--surface-2);
-    color: var(--text);
-    transition: background-color 0.3s ease, color 0.3s ease;
+  background: var(--surface-2);
+  color: var(--text);
+  transition: background-color var(--tr), color var(--tr);
 }
 
 .app-shell {
-    min-height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 a, .btn-link {
-    text-decoration: none;
-    transition: color 0.2s;
+  text-decoration: none;
+  transition: color .2s;
 }
 
+// ========================
 // Topbar
+// ========================
 .app-topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    box-shadow: var(--shadow);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
 
-    .navbar-brand {
-        color: var(--text);
-        font-weight: 700;
-        transition: color 0.3s ease;
-    }
-}
-
-// Sidebar
-.app-sidebar {
-    width: 280px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-
-    .offcanvas-header {
-        border-bottom: 1px solid var(--border);
-    }
-
-    .app-menu .nav-link {
-        color: var(--text);
-        border-radius: .75rem;
-        padding: .6rem .9rem;
-        margin: .125rem .25rem;
-        transition: background-color 0.2s ease, color 0.2s ease;
-
-        &:hover {
-            background: var(--surface-2);
-        }
-        &.active {
-            color: #fff;
-            background: var(--brand);
-            font-weight: 600;
-        }
-    }
-}
-
-// Contenido principal
-.app-content {
-    padding: 1.25rem;
-
-    @media (min-width: 992px){
-        padding: 2rem;
-    }
-}
-
-// Footer
-.app-footer {
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-// --- Componentes ---
-
-.brand-logo {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-}
-.brand-title {
+  .navbar-brand {
+    color: var(--text);
     font-weight: 700;
+    letter-spacing: .2px;
+    transition: color var(--tr);
+  }
+
+  .btn-icon {
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .25rem .5rem;
+    line-height: 1;
+    transition: background-color var(--tr), border-color var(--tr), transform .12s ease-out;
+
+    &:hover { background: var(--surface-2); }
+    &:active { transform: scale(.98); }
+  }
+
+  .btn-user {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .35rem .75rem;
+    transition: background-color var(--tr), border-color var(--tr);
+
+    &:hover { background: var(--surface-2); }
+  }
 }
 
-.app-topbar {
-    .btn-icon {
-        color: var(--text);
-        background: transparent;
-        border: 1px solid var(--border);
-        border-radius: .75rem;
-        padding: .25rem .5rem;
-        line-height: 1;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
+// ========================
+// Sidebar
+// ========================
+.app-sidebar {
+  width: 280px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: background-color var(--tr), border-color var(--tr);
 
-        &:hover {
-            background: var(--surface-2);
-        }
-    }
-    .btn-user {
-        background: transparent;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: .35rem .75rem;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
+  .offcanvas-header {
+    border-bottom: 1px solid var(--border);
+  }
 
-        &:hover {
-            background: var(--surface-2);
-        }
+  .app-menu .nav-link {
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: .6rem .9rem;
+    margin: .125rem .25rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    transition: background-color .2s ease, color .2s ease, transform .12s ease-out;
+
+    .bi { font-size: 1rem; opacity: .9; }
+
+    &:hover { background: var(--surface-2); }
+    &:active { transform: scale(.98); }
+
+    &.active {
+      color: #fff;
+      background: var(--brand);
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(233,120,106,.25);
     }
+  }
+
+  .offcanvas-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,.2) transparent;
+    &::-webkit-scrollbar { width: 8px; }
+    &::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 10px; }
+  }
+}
+
+// ========================
+// Contenido
+// ========================
+.app-content {
+  padding: 1.25rem;
+  @media (min-width: 992px) { padding: 2rem; }
 }
 
 .app-content .card {
-    border: 1px solid var(--border);
-    background: var(--surface);
-    box-shadow: var(--shadow);
-    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: background-color var(--tr), border-color var(--tr), box-shadow var(--tr), transform .18s ease-out;
 }
 
+.card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 35px rgba(0,0,0,.10);
+}
+
+// ========================
+// Footer
+// ========================
+.app-footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  transition: background-color var(--tr), border-color var(--tr);
+}
+
+// ========================
+// Componentes
+// ========================
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+.brand-title { font-weight: 700; }
+
+.btn { border-radius: var(--radius-sm); }
+
 .btn-brand {
-    --bs-btn-bg: var(--brand);
-    --bs-btn-border-color: var(--brand);
-    --bs-btn-hover-bg: var(--brand-600);
-    --bs-btn-hover-border-color: var(--brand-600);
-    --bs-btn-active-bg: var(--brand-700);
-    --bs-btn-active-border-color: var(--brand-700);
-    color: #fff;
-    font-weight: 600;
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-600);
+  --bs-btn-hover-border-color: var(--brand-600);
+  --bs-btn-active-bg: var(--brand-700);
+  --bs-btn-active-border-color: var(--brand-700);
+  color: #fff;
+  font-weight: 600;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 .25rem rgba(233,120,106,.35);
+  }
 }
 
 .badge-soft {
-    color: var(--text);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: .65rem;
-    padding: .35rem .6rem;
-    font-weight: 500;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+  padding: .35rem .6rem;
+  font-weight: 500;
+  transition: background-color var(--tr), border-color var(--tr);
 }
 
-// --- Tablas (Estilos generales, no específicos de Dark Mode) ---
+// ========================
+// Tablas
+// ========================
 .table {
-    // Forzamos el color del texto para toda la tabla (Se queda para Light Mode)
-    color: var(--text); 
+  color: var(--text);
 
-    thead th {
-        background: var(--brand);
-        color: #fff;
-        border-color: var(--brand);
-        vertical-align: middle;
-    }
-    
-    // Estas reglas se eliminan de aquí ya que se movieron arriba a html[data-theme="dark"]
+  thead th {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background-color .15s ease;
+    &:hover { background: var(--surface-2); }
+  }
 }
 
-// --- Formularios (Estilos generales, no específicos de Dark Mode) ---
-.form-control, .form-select {
-    // Solo dejamos la regla :focus aquí, la de color y fondo está en el Dark Mode Override
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+// ========================
+// Formularios
+// ========================
+.form-control,
+.form-select {
+  border-radius: var(--radius-sm);
+  transition: border-color .2s ease, box-shadow .2s ease, background-color var(--tr);
 
-    &:focus {
-        border-color: var(--brand);
-        box-shadow: 0 0 0 .25rem rgba(233,120,106,.25);
-    }
+  &:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 .25rem rgba(233,120,106,.25);
+  }
 }
 
 .input-group-text {
-    // Estas reglas se eliminan de aquí ya que se movieron arriba a html[data-theme="dark"]
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: background-color var(--tr), border-color var(--tr);
 }
 
-// --- Botones Outline genéricos (Asegura visibilidad en Dark Mode) ---
-// Este bloque usa variables SCSS de Bootstrap ($theme-colors) por lo que es mejor dejarlo aquí.
+.is-invalid { border-color: #e74c3c !important; }
+.was-validated .form-control:invalid:focus,
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 .25rem rgba(231,76,60,.25);
+}
+
+// ========================
+// Botones outline visibles
+// ========================
 @each $color, $value in $theme-colors {
-    .btn-outline-#{$color} {
-        color: var(--text);
-        border-color: var(--border);
-        
-        &:hover {
-            color: var(--surface);
-            background-color: var(--brand); // Usa la marca para cualquier hover
-            border-color: var(--brand);
-        }
+  .btn-outline-#{$color} {
+    color: var(--text);
+    border-color: var(--border);
+    &:hover {
+      color: var(--surface);
+      background-color: var(--brand);
+      border-color: var(--brand);
     }
+  }
 }
+
 .btn-outline-secondary {
-    color: var(--text);
-    border-color: var(--border);
-    &:hover {
-        color: var(--surface);
-        background-color: var(--muted);
-        border-color: var(--muted);
-    }
+  color: var(--text);
+  border-color: var(--border);
+  &:hover {
+    color: var(--surface);
+    background-color: var(--muted);
+    border-color: var(--muted);
+  }
 }
+
 .btn-outline-dark {
-    // En Dark Mode, btn-outline-dark se vuelve invisible. Lo remapeamos.
-    color: var(--text);
-    border-color: var(--border);
-    &:hover {
-        color: var(--surface);
-        background-color: var(--text);
-        border-color: var(--text);
-    }
+  color: var(--text);
+  border-color: var(--border);
+  &:hover {
+    color: var(--surface);
+    background-color: var(--text);
+    border-color: var(--text);
+  }
 }
 
+// ========================
+// Tom Select (match visual)
+// ========================
+.ts-wrapper.form-select,
+.ts-wrapper .ts-control {
+  min-height: calc(2.5rem + 2px);
+  border-radius: var(--radius-sm);
+}
+.ts-control, .ts-dropdown {
+  border-color: var(--border) !important;
+}
+.ts-control:focus, .ts-control.focus {
+  box-shadow: 0 0 0 .25rem rgba(233,120,106,.25) !important;
+  border-color: var(--brand) !important;
+}
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+}
 
-// --- Media Queries ---
+// ========================
+// Loader global (overlay)
+// ========================
+.app-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 1055;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.95));
+  backdrop-filter: blur(2px);
+  transition: opacity .35s ease, visibility .35s ease;
+
+  .small { color: var(--muted); }
+}
+.app-preloader__spinner {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid rgba(233,120,106,.25);
+  border-top-color: var(--brand);
+  animation: app-spin .8s linear infinite;
+  box-shadow: 0 12px 28px rgba(233,120,106,.25);
+}
+.app-preloader.is-hide { opacity: 0; visibility: hidden; }
+
+@keyframes app-spin { to { transform: rotate(360deg); } }
+
+// ========================
+// Media queries
+// ========================
 @media (max-width: 991px) {
-    .app-topbar .brand-title {
-        display: none;
-    }
-    .app-content {
-        padding: 1rem;
-    }
+  .app-topbar .brand-title { display: none; }
+  .app-content { padding: 1rem; }
+}
+/* ===== Loader global ===== */
+.app-loader {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(2px);
+  transition: opacity .2s ease;
+}
+.app-loader.show { display: flex; }
+
+/* Tema oscuro opcional (si usas data-theme="dark") */
+html[data-theme="dark"] .app-loader {
+  background: rgba(0,0,0,.35);
+}
+/* Loader overlay mínimo */
+.app-loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(17,19,21,.28);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+}
+.app-loader .spinner-border {
+  width: 2.5rem;
+  height: 2.5rem;
 }

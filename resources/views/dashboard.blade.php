@@ -16,168 +16,253 @@
 
 @section('content')
 <div class="dashboard py-2">
-
-  {{-- Tarjetas de resumen (demo) --}}
+  {{-- KPIs --}}
   <div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
       <div class="card shadow-sm h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
             <div class="text-muted small text-uppercase">Dispositivos</div>
-            <div class="h4 mb-0">42</div>
-            <div class="small text-muted">Inventario TI</div>
+            <div class="h4 mb-0">{{ $totalDispositivos ?? 0 }}</div>
+            <div class="small text-muted">{{ $dispositivosActivos ?? 0 }} activos</div>
           </div>
           <i class="bi bi-laptop fs-2 text-primary opacity-75"></i>
         </div>
       </div>
     </div>
-
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
       <div class="card shadow-sm h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
             <div class="text-muted small text-uppercase">Licencias</div>
-            <div class="h4 mb-0">15</div>
-            <div class="small text-muted">2 por expirar</div>
+            <div class="h4 mb-0">{{ ($licenciasPorEstado['activas'] ?? 0) + ($licenciasPorEstado['por_expiar'] ?? 0) }}</div>
+            <div class="small text-muted">{{ $licenciasPorExpiar ?? ($licenciasPorEstado['por_expiar'] ?? 0) }} por expirar</div>
           </div>
           <i class="bi bi-key fs-2 text-warning opacity-75"></i>
         </div>
       </div>
     </div>
-
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small text-uppercase">Reportes 7d</div>
+            <div class="h4 mb-0">{{ $reportesRecientes ?? 0 }}</div>
+            <div class="small text-muted">Actividad</div>
+          </div>
+          <i class="bi bi-clipboard-check fs-2 text-success opacity-75"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-2">
       <div class="card shadow-sm h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
             <div class="text-muted small text-uppercase">Colaboradores</div>
-            <div class="h4 mb-0">30</div>
+            <div class="h4 mb-0">{{ $totalColaboradores ?? 0 }}</div>
             <div class="small text-muted">Registro HR</div>
           </div>
-          <i class="bi bi-people fs-2 text-success opacity-75"></i>
+          <i class="bi bi-people fs-2 text-info opacity-75"></i>
         </div>
       </div>
     </div>
-
-    <div class="col-6 col-lg-3">
+    <div class="col-6 col-xl-2">
       <div class="card shadow-sm h-100">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div>
-            <div class="text-muted small text-uppercase">Alertas</div>
-            <div class="h4 mb-0">0</div>
-            <div class="small text-muted">Todo en orden</div>
+            <div class="text-muted small text-uppercase">Usuarios TI</div>
+            <div class="h4 mb-0">{{ $totalUsuariosTI ?? 0 }}</div>
+            <div class="small text-muted">Equipo</div>
           </div>
-          <i class="bi bi-bell fs-2 text-danger opacity-75"></i>
+          <i class="bi bi-person-gear fs-2 text-secondary opacity-75"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-xl-2">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small text-uppercase">Artículos</div>
+            <div class="h4 mb-0">{{ $totalArticulos ?? 0 }}</div>
+            <div class="small text-muted">Almacén</div>
+          </div>
+          <i class="bi bi-box-seam fs-2 text-danger opacity-75"></i>
         </div>
       </div>
     </div>
   </div>
 
-  {{-- Accesos rápidos --}}
+  {{-- Gráficas y accesos --}}
   <div class="row g-3 mb-3">
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-xxl-7">
       <div class="card shadow-sm h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span class="fw-semibold"><i class="bi bi-lightning-charge me-1"></i>Accesos rápidos</span>
+          <span class="fw-semibold"><i class="bi bi-activity me-1"></i> Actividad (últimos 7 días)</span>
         </div>
         <div class="card-body">
-          <div class="row g-2">
-            <div class="col-6 col-md-4">
-              <a href="{{ route('inventario-dispositivos.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-laptop me-1"></i> Inventario disp.
-              </a>
+          <div id="chart-actividad" style="height: 280px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xxl-5">
+      <div class="row g-3 h-100">
+        <div class="col-12">
+          <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="fw-semibold"><i class="bi bi-pie-chart me-1"></i> Licencias</span>
             </div>
-            <div class="col-6 col-md-4">
-              <a href="{{ route('licencias.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-key me-1"></i> Licencias
-              </a>
+            <div class="card-body">
+              <div id="chart-licencias" style="height: 220px;"></div>
             </div>
-            <div class="col-6 col-md-4">
-              <a href="{{ route('monitoreo_red.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-diagram-3 me-1"></i> Monitoreo red
-              </a>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="fw-semibold"><i class="bi bi-bar-chart me-1"></i> Dispositivos por estado</span>
             </div>
-            <div class="col-6 col-md-4">
-              <a href="{{ route('bitacora-respaldo.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-journal-text me-1"></i> Bitácora respaldo
-              </a>
-            </div>
-            <div class="col-6 col-md-4">
-              <a href="{{ route('articulos.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-box-seam me-1"></i> Artículos
-              </a>
-            </div>
-            <div class="col-6 col-md-4">
-              <a href="{{ route('usuarios-ti.index') }}" class="btn w-100 btn-outline-primary">
-                <i class="bi bi-people me-1"></i> Usuarios TI
-              </a>
+            <div class="card-body">
+              <div id="chart-dispositivos" style="height: 220px;"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    {{-- Tarjeta de bienvenida --}}
-    <div class="col-12 col-lg-4">
+  {{-- Listas: Dispositivos y Actividad reciente --}}
+  <div class="row g-3">
+    <div class="col-12 col-xxl-6">
       <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="fw-bold mb-2">Bienvenido 👋</h5>
-          <p class="text-muted mb-3">
-            Este panel es un resumen rápido de los módulos principales del Sistema de Gestión TI.
-          </p>
-          <ul class="list-unstyled small mb-3">
-            <li class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Revisa el inventario de dispositivos.</li>
-            <li class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Valida licencias y fechas de expiración.</li>
-            <li class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Monitorea el estado de la red y respaldos.</li>
-          </ul>
-          <a href="{{ route('profile.edit') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-person me-1"></i> Ir a mi perfil
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-hdd-network me-1"></i> Dispositivos recientes</span>
+          <a href="{{ route('inventario-dispositivos.index') }}" class="btn btn-sm btn-outline-primary">
+            Ver todos
           </a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Modelo</th>
+                  <th>Colaborador</th>
+                  <th>Estado</th>
+                  <th>Alta</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($dispositivosRecientes as $d)
+                  <tr>
+                    <td>{{ data_get($d, 'modelo', '—') }}</td>
+                    <td>
+                      @php
+                        $n = trim((string) data_get($d, 'colaborador.nombres', ''));
+                        $a = trim((string) data_get($d, 'colaborador.apellidos', ''));
+                      @endphp
+                      {{ $n || $a ? trim($n.' '.$a) : '—' }}
+                    </td>
+                    <td><span class="badge bg-light text-dark">{{ data_get($d, 'estado', '—') }}</span></td>
+                    <td class="text-muted">
+                      @php $dt = data_get($d, 'created_at'); @endphp
+                      {{ $dt ? \Carbon\Carbon::parse($dt)->format('d/m/Y H:i') : '—' }}
+                    </td>
+                  </tr>
+                @empty
+                  <tr><td colspan="4" class="text-center text-muted py-3">Sin registros.</td></tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xxl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold"><i class="bi bi-clock-history me-1"></i> Actividad reciente</span>
+          <a href="{{ route('reporte_actividades.index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            @forelse($actividadReciente as $item)
+              <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="me-3">
+                  <div class="fw-semibold">{{ data_get($item, 'actividad', '—') }}</div>
+                  <small class="text-muted">
+                    {{ \Illuminate\Support\Str::limit((string) data_get($item, 'descripcion', ''), 80) }}
+                  </small>
+                  <div class="mt-1 small">
+                    <span class="badge bg-secondary me-1">
+                      {{ data_get($item, 'naturaleza.nombre', '—') }}
+                    </span>
+                    @php
+                      $cn = trim((string) data_get($item, 'colaborador.nombres', ''));
+                      $ca = trim((string) data_get($item, 'colaborador.apellidos', ''));
+                    @endphp
+                    <span class="text-muted">{{ $cn || $ca ? trim($cn.' '.$ca) : '—' }}</span>
+                  </div>
+                </div>
+                <small class="text-muted">
+                  @php $rc = data_get($item, 'created_at'); @endphp
+                  {{ $rc ? \Carbon\Carbon::parse($rc)->diffForHumans() : '—' }}
+                </small>
+              </li>
+            @empty
+              <li class="list-group-item text-muted">Sin actividad reciente.</li>
+            @endforelse
+          </ul>
         </div>
       </div>
     </div>
   </div>
-
-  {{-- Tabla sencilla de “actividad reciente” (demo) --}}
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span class="fw-semibold"><i class="bi bi-clock-history me-1"></i>Actividad reciente (demo)</span>
-      <span class="small text-muted">Ejemplo estático, luego se conecta a BD</span>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Módulo</th>
-              <th>Acción</th>
-              <th>Usuario</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Inventario dispositivos</td>
-              <td>Alta de equipo “Laptop Dell”</td>
-              <td class="text-muted">rtzab</td>
-              <td class="text-muted">2025-11-08 10:30</td>
-            </tr>
-            <tr>
-              <td>Licencias</td>
-              <td>Actualización de licencia Office 365</td>
-              <td class="text-muted">mlopez</td>
-              <td class="text-muted">2025-11-08 09:15</td>
-            </tr>
-            <tr>
-              <td>Bitácora respaldos</td>
-              <td>Respaldo NAS Synology completado</td>
-              <td class="text-muted">rtzab</td>
-              <td class="text-muted">2025-11-07 18:42</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
 </div>
 @endsection
+
+@push('scripts')
+  {{-- ApexCharts CDN (simple y rápido) --}}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script>
+    (function () {
+      // Datos desde el controlador (con fallback seguro)
+      const actividadLabels = @json(array_keys($actividadPorDia ?? []));
+      const actividadData   = @json(array_values($actividadPorDia ?? []));
+      const licenciasData   = @json([
+        $licenciasPorEstado['activas']    ?? 0,
+        $licenciasPorEstado['por_expiar'] ?? 0,
+        $licenciasPorEstado['expiradas']  ?? 0
+      ]);
+      const dispositivosEstado = @json($dispositivosPorEstado ?? []);
+      const dispLabels = Object.keys(dispositivosEstado);
+      const dispData   = Object.values(dispositivosEstado);
+
+      // Línea: Actividad por día
+      new ApexCharts(document.querySelector("#chart-actividad"), {
+        chart: { type: 'line', height: 280, toolbar: { show: false } },
+        series: [{ name: 'Reportes', data: actividadData }],
+        xaxis: { categories: actividadLabels },
+        stroke: { width: 3, curve: 'smooth' },
+        markers: { size: 3 },
+        dataLabels: { enabled: false }
+      }).render();
+
+      // Dona: Licencias
+      new ApexCharts(document.querySelector("#chart-licencias"), {
+        chart: { type: 'donut', height: 220 },
+        labels: ['Activas', 'Por expirar', 'Expiradas'],
+        series: licenciasData,
+        legend: { position: 'bottom' }
+      }).render();
+
+      // Barras: Dispositivos por estado
+      new ApexCharts(document.querySelector("#chart-dispositivos"), {
+        chart: { type: 'bar', height: 220, toolbar: { show: false } },
+        series: [{ name: 'Dispositivos', data: dispData }],
+        xaxis: { categories: dispLabels },
+        plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+        dataLabels: { enabled: false }
+      }).render();
+    })();
+  </script>
+@endpush

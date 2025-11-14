@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-@include('partials.flash')
+
 
 <div class="card p-3 shadow-sm">
     <form method="GET" action="{{ route('colaboradores.index') }}" class="mb-3">
@@ -114,9 +114,12 @@
     </div>
 
     @if($colaboradores->hasPages())
-        <div class="card-footer">
-            {{ $colaboradores->links() }}
-        </div>
-    @endif
+  <div class="card-footer d-flex justify-content-between align-items-center">
+    <div class="small text-muted">
+      Mostrando {{ $colaboradores->firstItem() }}–{{ $colaboradores->lastItem() }} de {{ $colaboradores->total() }}
+    </div>
+    {{ $colaboradores->onEachSide(1)->links() }}
+  </div>
+@endif
 </div>
 @endsection

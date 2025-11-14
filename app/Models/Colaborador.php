@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model; // ← usar Model (no Authenticatable) si no es un usuario que hace login
 use Illuminate\Support\Facades\Schema;
 
-class Colaborador extends Authenticatable
+class Colaborador extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     protected $table = 'colaboradores';
 
@@ -20,8 +19,14 @@ class Colaborador extends Authenticatable
         'apellidos',
         'puesto',
         'anydesk_id',
-        // Nota: 'nombres' no se pone en fillable; es derivada
     ];
+
+    protected $casts = [
+        'departamento_id' => 'integer',
+    ];
+
+    // para que nombre_completo salga en toArray()/JSON si lo necesitas
+    protected $appends = ['nombre_completo'];
 
     // Relaciones
     public function inventarios()
@@ -37,7 +42,7 @@ class Colaborador extends Authenticatable
     // Accessor: nombre completo
     public function getNombreCompletoAttribute(): string
     {
-        return trim(($this->nombre ?? '').' '.($this->apellidos ?? ''));
+        return trim(($this->nombre ?? '') . ' ' . ($this->apellidos ?? ''));
     }
 
     // Scope: ordenar por nombre completo
@@ -46,12 +51,12 @@ class Colaborador extends Authenticatable
         return $query->orderByRaw("CONCAT_WS(' ', nombre, apellidos) ASC");
     }
 
-    // Mantener sincronizada la columna 'nombres' si existe en la BD
+    // Mantener sincronizada la columna 'nombres' si existe en la BD (opcional)
     protected static function booted()
     {
         static::saving(function (self $model) {
             if (Schema::hasColumn($model->getTable(), 'nombres')) {
-                $model->nombres = trim(($model->nombre ?? '').' '.($model->apellidos ?? ''));
+                $model->nombres = trim(($model->nombre ?? '') . ' ' . ($model->apellidos ?? ''));
             }
         });
     }
