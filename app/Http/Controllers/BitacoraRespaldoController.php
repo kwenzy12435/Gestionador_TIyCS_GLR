@@ -8,54 +8,96 @@ use Illuminate\Http\Request;
 
 class BitacoraRespaldoController extends Controller
 {
+    /* ---------------- Reglas / Mensajes / Atributos ---------------- */
+
+    protected function rules(): array
+    {
+        return [
+            'empresa_id'           => 'required|in:contabilidad,nomina',
+            'usuario_ti_id'        => 'required|exists:usuarios_ti,id',
+            'respaldo_nominas'     => 'sometimes|boolean',
+            'respaldo_contabilidad'=> 'sometimes|boolean',
+            'fecha_respaldo'       => 'required|date',
+            'estado'               => 'required|in:no hecho,Hecho',
+            'ubicacion_guardado'   => 'nullable|string|max:255',
+            'acciones_alternativas'=> 'nullable|string',
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'required'         => 'El campo :attribute es obligatorio.',
+            'in'               => 'El valor de :attribute no es válido.',
+            'exists'           => 'La :attribute seleccionada no existe.',
+            'boolean'          => 'El campo :attribute debe ser verdadero o falso.',
+            'date'             => 'El campo :attribute debe ser una fecha válida.',
+            'string'           => 'El campo :attribute debe ser texto.',
+            'max.string'       => 'El campo :attribute no debe exceder :max caracteres.',
+        ];
+    }
+
+    protected function attributes(): array
+    {
+        return [
+            'empresa_id'            => 'empresa',
+            'usuario_ti_id'         => 'responsable TI',
+            'respaldo_nominas'      => 'respaldo de nóminas',
+            'respaldo_contabilidad' => 'respaldo de contabilidad',
+            'fecha_respaldo'        => 'fecha de respaldo',
+            'estado'                => 'estado',
+            'ubicacion_guardado'    => 'ubicación de guardado',
+            'acciones_alternativas' => 'acciones alternativas',
+        ];
+    }
+
+    /* -------------------------- Acciones -------------------------- */
+
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        
+        $search = trim((string) $request->get('search'));
+
         $bitacoras = BitacoraRespaldo::with('usuarioTi')
-            ->when($search, function($query, $search) {
-                return $query->where(function($q) use ($search) {
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('empresa_id', 'LIKE', "%{$search}%")
                       ->orWhere('estado', 'LIKE', "%{$search}%")
                       ->orWhere('ubicacion_guardado', 'LIKE', "%{$search}%")
                       ->orWhere('acciones_alternativas', 'LIKE', "%{$search}%")
                       ->orWhere('fecha_respaldo', 'LIKE', "%{$search}%")
-                      ->orWhereHas('usuarioTi', function($q) use ($search) {
-                          $q->where('usuario', 'LIKE', "%{$search}%")
-                            ->orWhere('nombres', 'LIKE', "%{$search}%")
-                            ->orWhere('apellidos', 'LIKE', "%{$search}%")
-                            ->orWhere('puesto', 'LIKE', "%{$search}%");
+                      ->orWhereHas('usuarioTi', function ($qq) use ($search) {
+                          $qq->where('usuario', 'LIKE', "%{$search}%")
+                             ->orWhere('nombres', 'LIKE', "%{$search}%")
+                             ->orWhere('apellidos', 'LIKE', "%{$search}%")
+                             ->orWhere('puesto', 'LIKE', "%{$search}%");
                       });
                 });
             })
             ->orderBy('fecha_respaldo', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate();
-        
+            ->paginate(15)
+            ->withQueryString();
+
         return view('bitacora-respaldo.index', compact('bitacoras', 'search'));
     }
 
     public function create()
     {
-        $usuariosTi = UsuarioTi::orderBy('nombres')->paginate();
+        // Selects sin paginación
+        $usuariosTi = UsuarioTi::orderBy('nombres')->get();
         return view('bitacora-respaldo.create', compact('usuariosTi'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'empresa_id' => 'required|in:contabilidad,nomina',
-            'usuario_ti_id' => 'required|exists:usuarios_ti,id',
-            'respaldo_nominas' => 'sometimes|boolean',
-            'respaldo_contabilidad' => 'sometimes|boolean',
-            'fecha_respaldo' => 'required|date',
-            'estado' => 'required|in:no hecho,Hecho',
-            'ubicacion_guardado' => 'nullable|string|max:255',
-            'acciones_alternativas' => 'nullable|string'
-        ]);
+        $validated = $request->validate(
+            $this->rules(),
+            $this->messages(),
+            $this->attributes()
+        );
 
-        // Asegurar valores booleanos
-        $validated['respaldo_nominas'] = $request->boolean('respaldo_nominas');
+        // Cast explícito de checkboxes
+        $validated['respaldo_nominas']      = $request->boolean('respaldo_nominas');
         $validated['respaldo_contabilidad'] = $request->boolean('respaldo_contabilidad');
 
         BitacoraRespaldo::create($validated);
@@ -72,25 +114,19 @@ class BitacoraRespaldoController extends Controller
 
     public function edit(BitacoraRespaldo $bitacoraRespaldo)
     {
-        $usuariosTi = UsuarioTi::orderBy('nombres')->paginate();
+        $usuariosTi = UsuarioTi::orderBy('nombres')->get();
         return view('bitacora-respaldo.edit', compact('bitacoraRespaldo', 'usuariosTi'));
     }
 
     public function update(Request $request, BitacoraRespaldo $bitacoraRespaldo)
     {
-        $validated = $request->validate([
-            'empresa_id' => 'required|in:contabilidad,nomina',
-            'usuario_ti_id' => 'required|exists:usuarios_ti,id',
-            'respaldo_nominas' => 'sometimes|boolean',
-            'respaldo_contabilidad' => 'sometimes|boolean',
-            'fecha_respaldo' => 'required|date',
-            'estado' => 'required|in:no hecho,Hecho',
-            'ubicacion_guardado' => 'nullable|string|max:255',
-            'acciones_alternativas' => 'nullable|string'
-        ]);
+        $validated = $request->validate(
+            $this->rules(),
+            $this->messages(),
+            $this->attributes()
+        );
 
-        // Asegurar valores booleanos
-        $validated['respaldo_nominas'] = $request->boolean('respaldo_nominas');
+        $validated['respaldo_nominas']      = $request->boolean('respaldo_nominas');
         $validated['respaldo_contabilidad'] = $request->boolean('respaldo_contabilidad');
 
         $bitacoraRespaldo->update($validated);

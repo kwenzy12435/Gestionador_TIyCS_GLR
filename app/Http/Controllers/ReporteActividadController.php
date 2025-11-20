@@ -59,24 +59,35 @@ class ReporteActividadController extends Controller
 
     public function store(Request $request)
     {
-        // ✅ Todos los campos requeridos
-        $validated = $request->validate([
-            'fecha'           => 'required|date',
-            'colaborador_id'  => 'required|exists:colaboradores,id',
-            'actividad'       => 'required|string|max:255',
-            'descripcion'     => 'required|string|min:10',
-            'canal_id'        => 'required|exists:canales,id',
-            'naturaleza_id'   => 'required|exists:naturalezas,id',
-            'usuario_ti_id'   => 'required|exists:usuarios_ti,id',
-        ], [
-            'fecha.required' => 'La fecha es obligatoria.',
-            'colaborador_id.required' => 'Selecciona un colaborador.',
-            'actividad.required' => 'La actividad es obligatoria.',
-            'descripcion.required' => 'La descripción es obligatoria.',
-            'canal_id.required' => 'Selecciona un canal.',
-            'naturaleza_id.required' => 'Selecciona la naturaleza.',
-            'usuario_ti_id.required' => 'Selecciona el usuario TI.',
-        ]);
+        $validated = $request->validate(
+    [
+        'fecha'           => 'required|date',
+        'colaborador_id'  => 'required|exists:colaboradores,id',
+        'actividad'       => 'required|string|max:255',
+        'descripcion'     => 'required|string|min:10',
+        'canal_id'        => 'required|exists:canales,id',
+        'naturaleza_id'   => 'required|exists:naturalezas,id',
+        'usuario_ti_id'   => 'required|exists:usuarios_ti,id',
+    ],
+    [
+        'required' => 'El campo :attribute es obligatorio.',
+        'date'     => 'El campo :attribute debe ser una fecha válida.',
+        'string'   => 'El campo :attribute debe ser texto.',
+        'max'      => 'El campo :attribute no puede exceder :max caracteres.',
+        'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
+        'exists'   => 'El :attribute seleccionado no es válido.',
+    ],
+    [
+        'fecha'           => 'fecha',
+        'colaborador_id'  => 'colaborador',
+        'actividad'       => 'actividad',
+        'descripcion'     => 'descripción',
+        'canal_id'        => 'canal',
+        'naturaleza_id'   => 'naturaleza',
+        'usuario_ti_id'   => 'usuario TI',
+    ]
+);
+
 
         ReporteActividad::create($validated);
 
@@ -107,23 +118,35 @@ class ReporteActividadController extends Controller
     {
         $reporte = ReporteActividad::findOrFail($id);
 
-        $validated = $request->validate([
-            'fecha'           => 'required|date',
-            'colaborador_id'  => 'required|exists:colaboradores,id',
-            'actividad'       => 'required|string|max:255',
-            'descripcion'     => 'required|string|min:10',
-            'canal_id'        => 'required|exists:canales,id',
-            'naturaleza_id'   => 'required|exists:naturalezas,id',
-            'usuario_ti_id'   => 'required|exists:usuarios_ti,id',
-        ], [
-            'fecha.required' => 'La fecha es obligatoria.',
-            'colaborador_id.required' => 'Selecciona un colaborador.',
-            'actividad.required' => 'La actividad es obligatoria.',
-            'descripcion.required' => 'La descripción es obligatoria.',
-            'canal_id.required' => 'Selecciona un canal.',
-            'naturaleza_id.required' => 'Selecciona la naturaleza.',
-            'usuario_ti_id.required' => 'Selecciona el usuario TI.',
-        ]);
+      $validated = $request->validate(
+    [
+        'fecha'           => 'required|date',
+        'colaborador_id'  => 'required|exists:colaboradores,id',
+        'actividad'       => 'required|string|max:255',
+        'descripcion'     => 'required|string|min:10',
+        'canal_id'        => 'required|exists:canales,id',
+        'naturaleza_id'   => 'required|exists:naturalezas,id',
+        'usuario_ti_id'   => 'required|exists:usuarios_ti,id',
+    ],
+    [
+        'required' => 'El campo :attribute es obligatorio.',
+        'date'     => 'El campo :attribute debe ser una fecha válida.',
+        'string'   => 'El campo :attribute debe ser texto.',
+        'max'      => 'El campo :attribute no puede exceder :max caracteres.',
+        'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
+        'exists'   => 'El :attribute seleccionado no es válido.',
+    ],
+    [
+        'fecha'           => 'fecha',
+        'colaborador_id'  => 'colaborador',
+        'actividad'       => 'actividad',
+        'descripcion'     => 'descripción',
+        'canal_id'        => 'canal',
+        'naturaleza_id'   => 'naturaleza',
+        'usuario_ti_id'   => 'usuario TI',
+    ]
+);
+
 
         $reporte->update($validated);
 

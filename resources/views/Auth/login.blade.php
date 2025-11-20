@@ -68,20 +68,24 @@
 {{-- Contraseña --}}
 <div class="mb-3">
     <label for="contrasena" class="form-label fw-semibold">Contraseña</label>
-    <div class="input-group input-pill position-relative">
-        <span class="input-group-text">
-            <i class="fas fa-lock"></i>
-        </span>
-        <input
-            type="password"
-            id="contrasena"
-            name="contrasena"
-            class="form-control @error('contrasena') is-invalid @enderror"
-            placeholder="Ingresa tu contraseña"
-            autocomplete="current-password"
-            required
-        >
-        <button type="button" class="btn-eye" data-target="#contrasena" aria-label="Mostrar u ocultar contraseña">
+    <div class="password-field-container">
+        <div class="password-input-wrapper">
+            <div class="input-group input-pill">
+                <span class="input-group-text">
+                    <i class="fas fa-lock"></i>
+                </span>
+                <input
+                    type="password"
+                    id="contrasena"
+                    name="contrasena"
+                    class="form-control @error('contrasena') is-invalid @enderror"
+                    placeholder="Ingresa tu contraseña"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+        </div>
+        <button type="button" class="btn-eye-external" data-target="#contrasena" aria-label="Mostrar contraseña">
             <i class="fas fa-eye-slash"></i>
         </button>
     </div>
@@ -93,10 +97,11 @@
     @enderror
 </div>
 
+    
         {{-- Botón --}}
-        <button type="submit" class="btn btn-salmon w-100">
-          Iniciar sesión
-        </button>
+<button type="submit" class="btn btn-salmon w-100" id="login-btn">
+    <span class="btn-text">Iniciar sesión</span>
+</button>
       </form>
     </div>
   </div>

@@ -9,11 +9,23 @@
 @include('partials.flash')
 
 <div class="card p-4 shadow-sm">
+    {{-- Resumen de errores (opcional, ayuda al usuario) --}}
+    @if ($errors->any())
+      <div class="alert alert-danger">
+        <div class="fw-semibold mb-1">Por favor corrige los siguientes campos:</div>
+        <ul class="mb-0 small">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
+
     <form method="POST" action="{{ route('articulos.store') }}" novalidate id="formArticulo">
         @csrf
         
         <div class="row g-3">
-            <!-- Categoría -->
+            {{-- Categoría --}}
             <div class="col-md-6">
                 <label for="categoria_id" class="form-label fw-semibold">Categoría *</label>
                 <select name="categoria_id" id="categoria_id" class="form-select @error('categoria_id') is-invalid @enderror" required>
@@ -30,7 +42,7 @@
                 @enderror
             </div>
 
-            <!-- Subcategoría -->
+            {{-- Subcategoría --}}
             <div class="col-md-6">
                 <label for="subcategoria_id" class="form-label fw-semibold">Subcategoría</label>
                 <select name="subcategoria_id" id="subcategoria_id" class="form-select @error('subcategoria_id') is-invalid @enderror">
@@ -49,7 +61,7 @@
                 @enderror
             </div>
 
-            <!-- Nombre -->
+            {{-- Nombre --}}
             <div class="col-12">
                 <label for="nombre" class="form-label fw-semibold">Nombre del artículo *</label>
                 <input type="text" name="nombre" id="nombre" 
@@ -62,7 +74,7 @@
                 @enderror
             </div>
 
-            <!-- Descripción -->
+            {{-- Descripción --}}
             <div class="col-12">
                 <label for="descripcion" class="form-label fw-semibold">Descripción</label>
                 <textarea name="descripcion" id="descripcion" 
@@ -74,7 +86,7 @@
                 @enderror
             </div>
 
-            <!-- Cantidad y Unidades -->
+            {{-- Cantidad y Unidades --}}
             <div class="col-md-3">
                 <label for="cantidad" class="form-label fw-semibold">Cantidad *</label>
                 <input type="number" name="cantidad" id="cantidad" 
@@ -90,8 +102,8 @@
                 <label for="unidades" class="form-label fw-semibold">Unidades *</label>
                 <select name="unidades" id="unidades" class="form-select @error('unidades') is-invalid @enderror" required>
                     <option value="">Seleccionar…</option>
-                    <option value="piezas" {{ old('unidades') == 'piezas' ? 'selected' : '' }}>Piezas</option>
-                    <option value="cajas" {{ old('unidades') == 'cajas' ? 'selected' : '' }}>Cajas</option>
+                    <option value="piezas"   {{ old('unidades') == 'piezas' ? 'selected' : '' }}>Piezas</option>
+                    <option value="cajas"    {{ old('unidades') == 'cajas' ? 'selected' : '' }}>Cajas</option>
                     <option value="paquetes" {{ old('unidades') == 'paquetes' ? 'selected' : '' }}>Paquetes</option>
                 </select>
                 @error('unidades')
@@ -99,16 +111,16 @@
                 @enderror
             </div>
 
-            <!-- Ubicación y Fecha -->
+            {{-- Ubicación y Fecha --}}
             <div class="col-md-3">
                 <label for="ubicacion" class="form-label fw-semibold">Ubicación *</label>
                 <select name="ubicacion" id="ubicacion" class="form-select @error('ubicacion') is-invalid @enderror" required>
                     <option value="">Seleccionar…</option>
-                    <option value="cajon1" {{ old('ubicacion') == 'cajon1' ? 'selected' : '' }}>Cajón 1</option>
-                    <option value="rafa" {{ old('ubicacion') == 'rafa' ? 'selected' : '' }}>Rafa</option>
-                    <option value="cajon4" {{ old('ubicacion') == 'cajon4' ? 'selected' : '' }}>Cajón 4</option>
-                    <option value="almacen" {{ old('ubicacion') == 'almacen' ? 'selected' : '' }}>Almacén</option>
-                    <option value="oficina" {{ old('ubicacion') == 'oficina' ? 'selected' : '' }}>Oficina</option>
+                    @foreach(['cajon1','rafa','cajon4','almacen','oficina'] as $u)
+                      <option value="{{ $u }}" {{ old('ubicacion') == $u ? 'selected' : '' }}>
+                        {{ ucfirst($u) }}
+                      </option>
+                    @endforeach
                 </select>
                 @error('ubicacion')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -126,14 +138,14 @@
                 @enderror
             </div>
 
-            <!-- Estado -->
+            {{-- Estado --}}
             <div class="col-md-6">
                 <label for="estado" class="form-label fw-semibold">Estado *</label>
                 <select name="estado" id="estado" class="form-select @error('estado') is-invalid @enderror" required>
                     <option value="">Seleccionar…</option>
-                    <option value="Disponible" {{ old('estado') == 'Disponible' ? 'selected' : '' }}>Disponible</option>
-                    <option value="pocas piezas" {{ old('estado') == 'pocas piezas' ? 'selected' : '' }}>Pocas piezas</option>
-                    <option value="no disponible" {{ old('estado') == 'no disponible' ? 'selected' : '' }}>No disponible</option>
+                    @foreach(['Disponible', 'pocas piezas', 'no disponible'] as $e)
+                      <option value="{{ $e }}" {{ old('estado') == $e ? 'selected' : '' }}>{{ $e }}</option>
+                    @endforeach
                 </select>
                 @error('estado')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -141,7 +153,7 @@
             </div>
         </div>
 
-        <!-- Botones -->
+        {{-- Botones --}}
         <div class="text-end mt-4 pt-3 border-top">
             <button type="submit" class="btn btn-brand">
                 <i class="bi bi-check2 me-1"></i>Guardar artículo
@@ -163,14 +175,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filtrarSubcategorias() {
         const categoriaId = categoriaSelect.value;
-        
-        // Limpiar opciones actuales (excepto la primera)
+
+        // limpia (deja sólo la primera)
         while (subcategoriaSelect.options.length > 1) {
             subcategoriaSelect.remove(1);
         }
 
         if (categoriaId) {
-            // Agregar opciones filtradas
             subcategoriaOptions.forEach(option => {
                 if (option.value && option.dataset.categoria === categoriaId) {
                     subcategoriaSelect.add(option);
@@ -180,8 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     categoriaSelect.addEventListener('change', filtrarSubcategorias);
-    
-    // Filtrar al cargar la página si ya hay una categoría seleccionada
+
     if (categoriaSelect.value) {
         filtrarSubcategorias();
     }

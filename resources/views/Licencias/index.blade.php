@@ -9,13 +9,11 @@
 <a href="{{ route('licencias.create') }}" class="btn btn-brand">
     <i class="bi bi-plus-lg me-1"></i>Nueva Licencia
 </a>
-<a href="{{ route('licencias.por-expiar') }}" class="btn btn-outline-warning">
-    <i class="bi bi-exclamation-triangle me-1"></i>Por Expirar
-</a>
+
 @endsection
 
 @section('content')
-@include('Partials.flash')
+
 
 <div class="card p-3 shadow-sm">
     <!-- Barra de búsqueda -->

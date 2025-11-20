@@ -76,9 +76,10 @@ Route::middleware('auth')->group(function () {
         Route::get('bajas/export/pdf', [LogBajasController::class, 'exportPdf'])->name('bajas.export.pdf');
         Route::get('bajas/{id}', [LogBajasController::class, 'show'])->name('bajas.show');
     });
-    // ========================
-    // LICENCIAS
-    // ========================
+    
+// ========================
+// LICENCIAS
+// ========================
 Route::prefix('licencias')->name('licencias.')->group(function () {
     // Rutas resource principales
     Route::get('/', [LicenciaController::class, 'index'])->name('index');
@@ -91,9 +92,11 @@ Route::prefix('licencias')->name('licencias.')->group(function () {
     
     // Rutas adicionales
     Route::get('/por-expiar', [LicenciaController::class, 'licenciasPorExpiar'])->name('por-expiar');
-    Route::post('/{licencia}/revelar', [LicenciaController::class, 'revelarContrasena'])->name('revelar');
+    
+    // Rutas para ver contraseña - CORREGIDO
     Route::get('/{licencia}/ver-contrasena', [LicenciaController::class, 'verContrasena'])->name('ver-contrasena');
     Route::post('/{licencia}/ver-contrasena', [LicenciaController::class, 'procesarVerContrasena'])->name('procesar-ver-contrasena');
+    
     Route::post('/confirmar-password', [LicenciaController::class, 'confirmarPassword'])->name('confirmar-password');
 });
     // ========================
@@ -150,4 +153,9 @@ Route::middleware(AdminMiddleware::class)
     Route::resource('articulos', ArticuloController::class)
         ->parameters(['articulos' => 'articulo'])
         ->names('articulos');
+        
+        // SOLO para probar y luego borras
+Route::get('/_t404', fn() => abort(404));
+Route::get('/_t403', fn() => abort(403));
+
 });

@@ -118,10 +118,7 @@
 
       {{-- Buscador global opcional --}}
       <form class="d-none d-md-flex ms-3 flex-grow-1" role="search" method="GET" action="{{ route('dashboard') }}" aria-label="Búsqueda rápida">
-        <div class="input-group input-group-sm w-50">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="search" class="form-control" name="q" placeholder="Buscar en módulos…" value="{{ request('q') }}">
-        </div>
+       
       </form>
 
       <div class="ms-auto d-flex align-items-center gap-3">
@@ -157,11 +154,7 @@
                 <i class="bi bi-person me-2"></i>Mi Perfil
               </a>
             </li>
-            <li>
-              <a class="dropdown-item" href="{{ route('colaboradores.index') }}">
-                <i class="bi bi-people me-2"></i>Colaboradores
-              </a>
-            </li>
+
             @if($isAdmin)
               <li>
                 <a class="dropdown-item" href="{{ route('admin.configsistem.index') }}">

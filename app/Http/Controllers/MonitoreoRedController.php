@@ -45,21 +45,38 @@ class MonitoreoRedController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fecha' => 'required|date|before_or_equal:today', 
-            'velocidad_descarga' => 'required|numeric|min:0|max:1000', 
-            'velocidad_subida' => 'required|numeric|min:0|max:1000',  
-            'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
-            'clientes_conectados' => 'required|integer|min:0|max:1000',
-            'observaciones' => 'nullable|string|max:500', 
-            'responsable' => 'required|exists:usuarios_ti,id'
-        ], [
-            'fecha.before_or_equal' => 'La fecha no puede ser futura.', 
-            'velocidad_descarga.max' => 'La velocidad de descarga no puede ser mayor a 1000 Mbps.',
-            'velocidad_subida.max' => 'La velocidad de subida no puede ser mayor a 1000 Mbps.',
-            'clientes_conectados.max' => 'El número de clientes conectados no puede ser mayor a 1000.',
-            'observaciones.max' => 'Las observaciones no pueden exceder los 500 caracteres.'
-        ]);
+        $validated = $request->validate(
+    [
+        'fecha' => 'required|date|before_or_equal:today',
+        'velocidad_descarga' => 'required|numeric|min:0|max:1000',
+        'velocidad_subida' => 'required|numeric|min:0|max:1000',
+        'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
+        'clientes_conectados' => 'required|integer|min:0|max:1000',
+        'observaciones' => 'nullable|string|max:500',
+        'responsable' => 'required|exists:usuarios_ti,id',
+    ],
+    [
+        'required'          => 'El campo :attribute es obligatorio.',
+        'date'              => 'El campo :attribute debe ser una fecha válida.',
+        'before_or_equal'   => 'La :attribute no puede ser futura.',
+        'numeric'           => 'El campo :attribute debe ser numérico.',
+        'integer'           => 'El campo :attribute debe ser un número entero.',
+        'min'               => 'El campo :attribute no puede ser menor a :min.',
+        'max'               => 'El campo :attribute no puede ser mayor a :max.',
+        'string'            => 'El campo :attribute debe ser texto.',
+        'exists'            => 'El :attribute seleccionado no es válido.',
+    ],
+    [
+        'fecha'                         => 'fecha',
+        'velocidad_descarga'            => 'velocidad de descarga (Mbps)',
+        'velocidad_subida'              => 'velocidad de subida (Mbps)',
+        'porcentaje_experiencia_wifi'   => 'experiencia WiFi (%)',
+        'clientes_conectados'           => 'clientes conectados',
+        'observaciones'                 => 'observaciones',
+        'responsable'                   => 'responsable',
+    ]
+);
+
 
         // Agregar hora automática
         $validated['hora'] = now()->setTimezone('America/Merida')->format('H:i');
@@ -84,21 +101,38 @@ class MonitoreoRedController extends Controller
 
     public function update(Request $request, MonitoreoRed $monitoreoRed)
     {
-        $validated = $request->validate([
-            'fecha' => 'required|date|before_or_equal:today', 
-            'velocidad_descarga' => 'required|numeric|min:0|max:1000',
-            'velocidad_subida' => 'required|numeric|min:0|max:1000',
-            'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
-            'clientes_conectados' => 'required|integer|min:0|max:1000',
-            'observaciones' => 'nullable|string|max:500',
-            'responsable' => 'required|exists:usuarios_ti,id'
-        ], [
-            'fecha.before_or_equal' => 'La fecha no puede ser futura.',
-            'velocidad_descarga.max' => 'La velocidad de descarga no puede ser mayor a 1000 Mbps.',
-            'velocidad_subida.max' => 'La velocidad de subida no puede ser mayor a 1000 Mbps.',
-            'clientes_conectados.max' => 'El número de clientes conectados no puede ser mayor a 1000.',
-            'observaciones.max' => 'Las observaciones no pueden exceder los 500 caracteres.'
-        ]);
+        $validated = $request->validate(
+    [
+        'fecha' => 'required|date|before_or_equal:today',
+        'velocidad_descarga' => 'required|numeric|min:0|max:1000',
+        'velocidad_subida' => 'required|numeric|min:0|max:1000',
+        'porcentaje_experiencia_wifi' => 'required|numeric|min:0|max:100',
+        'clientes_conectados' => 'required|integer|min:0|max:1000',
+        'observaciones' => 'nullable|string|max:500',
+        'responsable' => 'required|exists:usuarios_ti,id',
+    ],
+    [
+        'required'          => 'El campo :attribute es obligatorio.',
+        'date'              => 'El campo :attribute debe ser una fecha válida.',
+        'before_or_equal'   => 'La :attribute no puede ser futura.',
+        'numeric'           => 'El campo :attribute debe ser numérico.',
+        'integer'           => 'El campo :attribute debe ser un número entero.',
+        'min'               => 'El campo :attribute no puede ser menor a :min.',
+        'max'               => 'El campo :attribute no puede ser mayor a :max.',
+        'string'            => 'El campo :attribute debe ser texto.',
+        'exists'            => 'El :attribute seleccionado no es válido.',
+    ],
+    [
+        'fecha'                         => 'fecha',
+        'velocidad_descarga'            => 'velocidad de descarga (Mbps)',
+        'velocidad_subida'              => 'velocidad de subida (Mbps)',
+        'porcentaje_experiencia_wifi'   => 'experiencia WiFi (%)',
+        'clientes_conectados'           => 'clientes conectados',
+        'observaciones'                 => 'observaciones',
+        'responsable'                   => 'responsable',
+    ]
+);
+
 
         // Actualizar hora automática
         $validated['hora'] = now()->setTimezone('America/Merida')->format('H:i');

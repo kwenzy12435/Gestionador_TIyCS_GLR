@@ -1,6 +1,8 @@
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
+@import "auth/login";
+
 @import "tom-select/dist/css/tom-select.bootstrap5.css";
 
 // ========================
@@ -63,7 +65,7 @@ html[data-theme="dark"] {
 // ========================
 // Módulos (tus parciales)
 // ========================
-@import "modules/dashboard";
+
 @import "modules/inventario_dispositivos";
 @import "modules/licencias";
 @import "modules/articulos";
@@ -73,6 +75,7 @@ html[data-theme="dark"] {
 @import "modules/colaboradores";
 @import "modules/usuarios-ti";
 @import "modules/admin_bajas";
+@import "modules/dashboard";
 
 // ========================
 // Bootstrap al final

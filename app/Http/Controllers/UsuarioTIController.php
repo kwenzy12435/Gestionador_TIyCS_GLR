@@ -38,19 +38,38 @@ class UsuarioTIController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'usuario' => 'required|string|max:100|unique:usuarios_ti,usuario',
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'nullable|string|max:100',
-            'puesto' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:20',
-            'rol' => ['required', Rule::in(['ADMIN', 'AUXILIAR-TI', 'PERSONAL-TI'])],
-            'contrasena' => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
-        ], [
-            'contrasena.regex' => 'La contraseña debe contener al menos una letra minúscula, una letra mayúscula y un número.',
-            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'contrasena.confirmed' => 'La confirmación de la contraseña no coincide.',
-        ]);
+        $validated = $request->validate(
+    [
+        'usuario'     => 'required|string|max:100|unique:usuarios_ti,usuario',
+        'nombres'     => 'required|string|max:100',
+        'apellidos'   => 'nullable|string|max:100',
+        'puesto'      => 'nullable|string|max:100',
+        'telefono'    => 'nullable|string|max:20',
+        'rol'         => ['required', Rule::in(['ADMIN', 'AUXILIAR-TI', 'PERSONAL-TI'])],
+        'contrasena'  => ['required','string','min:8','confirmed','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
+    ],
+    [
+        'required'   => 'El campo :attribute es obligatorio.',
+        'string'     => 'El campo :attribute debe ser texto.',
+        'max'        => 'El campo :attribute no puede exceder :max caracteres.',
+        'min'        => 'El campo :attribute debe tener al menos :min caracteres.',
+        'confirmed'  => 'La confirmación de :attribute no coincide.',
+        'unique'     => 'El :attribute ya está en uso.',
+        'in'         => 'El :attribute seleccionado no es válido.',
+        'regex'      => 'El campo :attribute debe incluir al menos una minúscula, una mayúscula y un número.',
+    ],
+    [
+        'usuario'                     => 'usuario',
+        'nombres'                     => 'nombres',
+        'apellidos'                   => 'apellidos',
+        'puesto'                      => 'puesto',
+        'telefono'                    => 'teléfono',
+        'rol'                         => 'rol',
+        'contrasena'                  => 'contraseña',
+        'contrasena_confirmation'     => 'confirmación de contraseña',
+    ]
+);
+
 
         UsuarioTI::create([
             'usuario' => $validated['usuario'],
@@ -80,19 +99,38 @@ class UsuarioTIController extends Controller
 
     public function update(Request $request, UsuarioTI $usuarioTi)
     {
-        $validated = $request->validate([
-            'usuario' => ['required', 'string', 'max:100', Rule::unique('usuarios_ti', 'usuario')->ignore($usuarioTi->id)],
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'nullable|string|max:100',
-            'puesto' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:20',
-            'rol' => ['required', Rule::in(['ADMIN', 'AUXILIAR-TI', 'PERSONAL-TI'])],
-            'contrasena' => ['nullable', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
-        ], [
-            'contrasena.regex' => 'La contraseña debe contener al menos una letra minúscula, una letra mayúscula y un número.',
-            'contrasena.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'contrasena.confirmed' => 'La confirmación de la contraseña no coincide.',
-        ]);
+        $validated = $request->validate(
+    [
+        'usuario'     => ['required','string','max:100', Rule::unique('usuarios_ti','usuario')->ignore($usuarioTi->id)],
+        'nombres'     => 'required|string|max:100',
+        'apellidos'   => 'nullable|string|max:100',
+        'puesto'      => 'nullable|string|max:100',
+        'telefono'    => 'nullable|string|max:20',
+        'rol'         => ['required', Rule::in(['ADMIN', 'AUXILIAR-TI', 'PERSONAL-TI'])],
+        'contrasena'  => ['nullable','string','min:8','confirmed','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
+    ],
+    [
+        'required'   => 'El campo :attribute es obligatorio.',
+        'string'     => 'El campo :attribute debe ser texto.',
+        'max'        => 'El campo :attribute no puede exceder :max caracteres.',
+        'min'        => 'El campo :attribute debe tener al menos :min caracteres.',
+        'confirmed'  => 'La confirmación de :attribute no coincide.',
+        'unique'     => 'El :attribute ya está en uso.',
+        'in'         => 'El :attribute seleccionado no es válido.',
+        'regex'      => 'El campo :attribute debe incluir al menos una minúscula, una mayúscula y un número.',
+    ],
+    [
+        'usuario'                     => 'usuario',
+        'nombres'                     => 'nombres',
+        'apellidos'                   => 'apellidos',
+        'puesto'                      => 'puesto',
+        'telefono'                    => 'teléfono',
+        'rol'                         => 'rol',
+        'contrasena'                  => 'contraseña',
+        'contrasena_confirmation'     => 'confirmación de contraseña',
+    ]
+);
+
 
         $data = [
             'usuario' => $validated['usuario'],

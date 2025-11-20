@@ -25,15 +25,22 @@ class LoginController extends Controller
         }
 
         // Validar campos requeridos
-        $credentials = $request->validate([
-            'usuario' => 'required|string|max:50',
-            'contrasena' => 'required|string|min:6'
-        ], [
-            'usuario.required' => 'El campo usuario es obligatorio.',
-            'usuario.max' => 'El usuario no debe exceder los 50 caracteres.',
-            'contrasena.required' => 'El campo contraseña es obligatorio.',
-            'contrasena.min' => 'La contraseña debe tener al menos 6 caracteres.',
-        ]);
+   $credentials = $request->validate(
+    [
+        'usuario'    => 'required|string|max:50',
+        'contrasena' => 'required|string|min:6',
+    ],
+    [
+        'required' => 'El campo :attribute es obligatorio.',
+        'string'   => 'El campo :attribute debe ser texto.',
+        'max'      => 'El campo :attribute no debe exceder :max caracteres.',
+        'min'      => 'El campo :attribute debe tener al menos :min caracteres.',
+    ],
+    [
+        'usuario'    => 'usuario',
+        'contrasena' => 'contraseña',
+    ]
+);
 
         // Buscar usuario (con eager loading si necesitas relaciones)
         $user = UsuarioTI::where('usuario', $credentials['usuario'])->first();

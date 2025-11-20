@@ -77,10 +77,7 @@
                    class="btn btn-outline-dark text-start">
                     <i class="bi bi-shield-lock me-2"></i>Ver Contraseña
                 </a>
-                <a href="{{ route('licencias.edit', $licencia) }}" 
-                   class="btn btn-outline-warning text-start">
-                    <i class="bi bi-pencil me-2"></i>Editar Licencia
-                </a>
+              
                 
                 @if($exp && $days <= 30)
                 <div class="alert alert-warning mt-2 mb-0">

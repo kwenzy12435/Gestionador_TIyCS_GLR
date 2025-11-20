@@ -9,12 +9,24 @@
 @include('partials.flash')
 
 <div class="card p-4 shadow-sm">
-    <form method="POST" action="{{ route('articulos.update', $articulo) }}" id="formArticulo">
+    {{-- Resumen de errores (opcional) --}}
+    @if ($errors->any())
+      <div class="alert alert-danger">
+        <div class="fw-semibold mb-1">Por favor corrige los siguientes campos:</div>
+        <ul class="mb-0 small">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
+
+    <form method="POST" action="{{ route('articulos.update', $articulo) }}" id="formArticulo" novalidate>
         @csrf 
         @method('PUT')
         
         <div class="row g-3">
-            <!-- Categoría -->
+            {{-- Categoría --}}
             <div class="col-md-6">
                 <label for="categoria_id" class="form-label fw-semibold">Categoría *</label>
                 <select name="categoria_id" id="categoria_id" class="form-select @error('categoria_id') is-invalid @enderror" required>
@@ -31,7 +43,7 @@
                 @enderror
             </div>
 
-            <!-- Subcategoría -->
+            {{-- Subcategoría --}}
             <div class="col-md-6">
                 <label for="subcategoria_id" class="form-label fw-semibold">Subcategoría</label>
                 <select name="subcategoria_id" id="subcategoria_id" class="form-select @error('subcategoria_id') is-invalid @enderror">
@@ -50,7 +62,7 @@
                 @enderror
             </div>
 
-            <!-- Nombre -->
+            {{-- Nombre --}}
             <div class="col-12">
                 <label for="nombre" class="form-label fw-semibold">Nombre del artículo *</label>
                 <input type="text" name="nombre" id="nombre" 
@@ -62,7 +74,7 @@
                 @enderror
             </div>
 
-            <!-- Descripción -->
+            {{-- Descripción --}}
             <div class="col-12">
                 <label for="descripcion" class="form-label fw-semibold">Descripción</label>
                 <textarea name="descripcion" id="descripcion" 
@@ -73,7 +85,7 @@
                 @enderror
             </div>
 
-            <!-- Cantidad y Unidades -->
+            {{-- Cantidad y Unidades --}}
             <div class="col-md-3">
                 <label for="cantidad" class="form-label fw-semibold">Cantidad *</label>
                 <input type="number" name="cantidad" id="cantidad" 
@@ -88,7 +100,7 @@
             <div class="col-md-3">
                 <label for="unidades" class="form-label fw-semibold">Unidades *</label>
                 <select name="unidades" id="unidades" class="form-select @error('unidades') is-invalid @enderror" required>
-                    @foreach(['piezas', 'cajas', 'paquetes'] as $unidad)
+                    @foreach(['piezas','cajas','paquetes'] as $unidad)
                         <option value="{{ $unidad }}" 
                             {{ old('unidades', $articulo->unidades) == $unidad ? 'selected' : '' }}>
                             {{ ucfirst($unidad) }}
@@ -100,14 +112,14 @@
                 @enderror
             </div>
 
-            <!-- Ubicación y Fecha -->
+            {{-- Ubicación y Fecha --}}
             <div class="col-md-3">
                 <label for="ubicacion" class="form-label fw-semibold">Ubicación *</label>
                 <select name="ubicacion" id="ubicacion" class="form-select @error('ubicacion') is-invalid @enderror" required>
-                    @foreach(['cajon1', 'rafa', 'cajon4', 'almacen', 'oficina'] as $ubicacion)
-                        <option value="{{ $ubicacion }}" 
-                            {{ old('ubicacion', $articulo->ubicacion) == $ubicacion ? 'selected' : '' }}>
-                            {{ ucfirst($ubicacion) }}
+                    @foreach(['cajon1','rafa','cajon4','almacen','oficina'] as $u)
+                        <option value="{{ $u }}" 
+                            {{ old('ubicacion', $articulo->ubicacion) == $u ? 'selected' : '' }}>
+                            {{ ucfirst($u) }}
                         </option>
                     @endforeach
                 </select>
@@ -118,20 +130,25 @@
 
             <div class="col-md-3">
                 <label for="fecha_ingreso" class="form-label fw-semibold">Fecha de ingreso *</label>
+                @php
+                    $fechaVal = $articulo->fecha_ingreso 
+                        ? \Carbon\Carbon::parse($articulo->fecha_ingreso)->format('Y-m-d')
+                        : now()->format('Y-m-d');
+                @endphp
                 <input type="date" name="fecha_ingreso" id="fecha_ingreso" 
                        class="form-control @error('fecha_ingreso') is-invalid @enderror" 
-                       value="{{ old('fecha_ingreso', $articulo->fecha_ingreso->format('Y-m-d')) }}" 
+                       value="{{ old('fecha_ingreso', $fechaVal) }}" 
                        required>
                 @error('fecha_ingreso')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
-            <!-- Estado -->
+            {{-- Estado --}}
             <div class="col-md-6">
                 <label for="estado" class="form-label fw-semibold">Estado *</label>
                 <select name="estado" id="estado" class="form-select @error('estado') is-invalid @enderror" required>
-                    @foreach(['Disponible', 'pocas piezas', 'no disponible'] as $estado)
+                    @foreach(['Disponible','pocas piezas','no disponible'] as $estado)
                         <option value="{{ $estado }}" 
                             {{ old('estado', $articulo->estado) == $estado ? 'selected' : '' }}>
                             {{ $estado }}
@@ -144,7 +161,7 @@
             </div>
         </div>
 
-        <!-- Botones -->
+        {{-- Botones --}}
         <div class="text-end mt-4 pt-3 border-top">
             <button type="submit" class="btn btn-warning">
                 <i class="bi bi-save2 me-1"></i>Actualizar artículo
@@ -166,14 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filtrarSubcategorias() {
         const categoriaId = categoriaSelect.value;
-        
-        // Limpiar opciones actuales (excepto la primera)
+
         while (subcategoriaSelect.options.length > 1) {
             subcategoriaSelect.remove(1);
         }
 
         if (categoriaId) {
-            // Agregar opciones filtradas
             subcategoriaOptions.forEach(option => {
                 if (option.value && option.dataset.categoria === categoriaId) {
                     subcategoriaSelect.add(option);
@@ -183,8 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     categoriaSelect.addEventListener('change', filtrarSubcategorias);
-    
-    // Filtrar al cargar la página
     filtrarSubcategorias();
 });
 </script>
