@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-@include('partials.flash')
+
 
 <div class="card p-3 shadow-sm card-hoverable">
   {{-- Buscador --}}

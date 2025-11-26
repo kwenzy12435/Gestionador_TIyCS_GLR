@@ -67,7 +67,7 @@ class ConfigSistemaController extends Controller
 
         if ($tabla === 'subcategorias') {
             $request->validate([
-                'categoria_id' => 'required|exists:categororias,id', // corregido abajo a "categorias"
+                'categoria_id' => 'required|exists:categorias,id', 
                 'nombre'       => 'required|string|max:100|unique:subcategorias,nombre,NULL,id,categoria_id,' . $request->categoria_id,
             ]);
         } else {

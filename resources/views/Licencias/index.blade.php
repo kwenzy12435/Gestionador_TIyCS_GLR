@@ -95,16 +95,19 @@
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('licencias.destroy', $licencia) }}" 
-                                  method="POST" 
-                                  class="d-inline" 
-                                  onsubmit="return confirm('¿Estás seguro de eliminar esta licencia?')">
-                                @csrf 
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+<form action="{{ route('licencias.destroy', $licencia) }}" 
+      method="POST" 
+      class="d-inline"
+      data-confirm="¿Estás seguro de eliminar esta licencia?"
+      data-confirm-title="Eliminar licencia"
+      data-confirm-variant="danger">
+    @csrf 
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+        <i class="bi bi-trash"></i>
+    </button>
+</form>
+
                         </td>
                     </tr>
                 @empty

@@ -86,16 +86,19 @@
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('colaboradores.destroy', $colaborador) }}" 
-                                  method="POST" 
-                                  class="d-inline" 
-                                  onsubmit="return confirm('¿Estás seguro de eliminar este colaborador?')">
-                                @csrf 
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                           <form action="{{ route('colaboradores.destroy', $colaborador) }}" 
+      method="POST" 
+      class="d-inline"
+      data-confirm="¿Estás seguro de eliminar al colaborador «{{ $colaborador->nombre }} {{ $colaborador->apellidos }}»?"
+      data-confirm-title="Eliminar colaborador"
+      data-confirm-variant="danger">
+    @csrf 
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+        <i class="bi bi-trash"></i>
+    </button>
+</form>
+
                         </td>
                     </tr>
                 @empty

@@ -2,142 +2,135 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Articulo;
+use App\Models\Departamento;
+use App\Models\Canal;
+use App\Models\Marca;
+use App\Models\Naturaleza;
+use App\Models\Plataforma;
+use App\Models\TipoDispositivo;
 use App\Models\Categoria;
 use App\Models\Subcategoria;
 use Illuminate\Http\Request;
 
-class ArticuloController extends Controller
+class ConfigSistemaController extends Controller
 {
-    /* ---------- Reglas / Mensajes / Atributos ---------- */
+    private array $modelos = [
+        'departamentos'     => Departamento::class,
+        'canales'           => Canal::class,
+        'marcas'            => Marca::class,
+        'naturalezas'       => Naturaleza::class,
+        'plataformas'       => Plataforma::class,
+        'tipos_dispositivo' => TipoDispositivo::class,
+        'categorias'        => Categoria::class,
+        'subcategorias'     => Subcategoria::class,
+    ];
 
-    protected function rules(): array
+    private array $nombres = [
+        'departamentos'     => 'Departamentos',
+        'canales'           => 'Canales de Atención',
+        'marcas'            => 'Marcas de Equipos',
+        'naturalezas'       => 'Naturalezas de Solicitud',
+        'plataformas'       => 'Plataformas/Sistemas',
+        'tipos_dispositivo' => 'Tipos de Dispositivo',
+        'categorias'        => 'Categorías',
+        'subcategorias'     => 'Subcategorías',
+    ];
+
+    public function index(?string $tabla = 'departamentos')
     {
-        return [
-            'categoria_id'    => 'required|exists:categorias,id',
-            'subcategoria_id' => 'nullable|exists:subcategorias,id',
-            'nombre'          => 'required|string|max:150',
-            'descripcion'     => 'nullable|string',
-            'cantidad'        => 'required|integer|min:0',
-            'unidades'        => 'required|in:piezas,cajas,paquetes',
-            'ubicacion'       => 'required|in:cajon1,rafa,cajon4,almacen,oficina',
-            'fecha_ingreso'   => 'required|date',
-            'estado'          => 'required|in:Disponible,pocas piezas,no disponible',
-        ];
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
+
+        $modelo = $this->modelos[$tabla];
+
+        $datos = $tabla === 'subcategorias'
+            ? $modelo::with('categoria')->get()
+            : $modelo::all();
+
+        return view('admin.configsistem.index', [
+            'tabla_actual' => $tabla,
+            'nombre_tabla' => $this->nombres[$tabla],
+            'datos'        => $datos,
+            'tablas'       => $this->nombres,
+            'categorias'   => $tabla === 'subcategorias' ? Categoria::all() : collect(),
+        ]);
     }
 
-    protected function messages(): array
+    public function store(Request $request, string $tabla)
     {
-        return [
-            'required'           => 'El campo :attribute es obligatorio.',
-            'string'             => 'El campo :attribute debe ser texto.',
-            'integer'            => 'El campo :attribute debe ser un número entero.',
-            'min.integer'        => 'El campo :attribute debe ser al menos :min.',
-            'date'               => 'El campo :attribute debe ser una fecha válida.',
-            'in'                 => 'El valor de :attribute no es válido.',
-            'exists'             => 'La :attribute seleccionada no existe.',
-            'max.string'         => 'El campo :attribute no debe exceder :max caracteres.',
-        ];
+        if (!array_key_exists($tabla, $this->modelos)) {
+        abort(404);
     }
 
-    protected function attributes(): array
-    {
-        return [
-            'categoria_id'    => 'categoría',
-            'subcategoria_id' => 'subcategoría',
-            'nombre'          => 'nombre del artículo',
-            'descripcion'     => 'descripción',
-            'cantidad'        => 'cantidad',
-            'unidades'        => 'unidades',
-            'ubicacion'       => 'ubicación',
-            'fecha_ingreso'   => 'fecha de ingreso',
-            'estado'          => 'estado',
-        ];
+    if ($tabla === 'subcategorias') {
+        $request->validate([
+            'categoria_id' => 'required|exists:categorias,id',
+            'nombre'       => 'required|string|max:100|unique:subcategorias,nombre,NULL,id,categoria_id,' . $request->categoria_id,
+        ]);
+    } else {
+        $request->validate([
+            'nombre' => 'required|string|max:100|unique:' . $tabla . ',nombre',
+        ]);
     }
 
-    /* ------------------ Acciones ------------------ */
+    $modelo = $this->modelos[$tabla];
 
-    public function index(Request $request)
-    {
-        $search = trim((string) $request->get('search'));
+    $payload = ['nombre' => $request->nombre];
 
-        $articulos = Articulo::with(['categoria', 'subcategoria'])
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('nombre', 'LIKE', "%{$search}%")
-                      ->orWhere('descripcion', 'LIKE', "%{$search}%")
-                      ->orWhere('unidades', 'LIKE', "%{$search}%")
-                      ->orWhere('ubicacion', 'LIKE', "%{$search}%")
-                      ->orWhere('estado', 'LIKE', "%{$search}%")
-                      ->orWhere('fecha_ingreso', 'LIKE', "%{$search}%")
-                      ->orWhereHas('categoria', fn($qq) => $qq->where('nombre','LIKE',"%{$search}%")
-                                                           ->orWhere('descripcion','LIKE',"%{$search}%"))
-                      ->orWhereHas('subcategoria', fn($qq) => $qq->where('nombre','LIKE',"%{$search}%")
-                                                              ->orWhere('descripcion','LIKE',"%{$search}%"));
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('articulos.index', compact('articulos', 'search'));
+    if ($tabla === 'subcategorias') {
+        $payload['categoria_id'] = $request->categoria_id;
     }
 
-    public function create()
-    {
-        $categorias    = Categoria::orderBy('nombre')->get();
-        $subcategorias = Subcategoria::orderBy('nombre')->get();
+    $modelo::create($payload);
 
-        return view('articulos.create', compact('categorias', 'subcategorias'));
+    return redirect()->route('admin.configsistem.index', $tabla)
+        ->with('success', 'Registro creado correctamente.');
     }
 
-    public function store(Request $request)
+    public function update(Request $request, string $tabla, int $id)
     {
-        $validated = $request->validate(
-            $this->rules(),
-            $this->messages(),
-            $this->attributes()
-        );
-
-        Articulo::create($validated);
-
-        return redirect()->route('articulos.index')
-            ->with('success', 'Artículo creado exitosamente.');
+         if (!array_key_exists($tabla, $this->modelos)) {
+        abort(404);
     }
 
-    public function show(Articulo $articulo)
-    {
-        $articulo->load(['categoria', 'subcategoria']);
-        return view('articulos.show', compact('articulo'));
+    $modelo   = $this->modelos[$tabla];
+    $registro = $modelo::findOrFail($id);
+
+    if ($tabla === 'subcategorias') {
+        $request->validate([
+            'categoria_id' => 'required|exists:categorias,id',
+            'nombre'       => 'required|string|max:100|unique:subcategorias,nombre,' . $id . ',id,categoria_id,' . $request->categoria_id,
+        ]);
+    } else {
+        $request->validate([
+            'nombre' => 'required|string|max:100|unique:' . $tabla . ',nombre,' . $id,
+        ]);
     }
 
-    public function edit(Articulo $articulo)
-    {
-        $categorias    = Categoria::orderBy('nombre')->get();
-        $subcategorias = Subcategoria::orderBy('nombre')->get();
+    $payload = ['nombre' => $request->nombre];
 
-        return view('articulos.edit', compact('articulo', 'categorias', 'subcategorias'));
+    if ($tabla === 'subcategorias') {
+        $payload['categoria_id'] = $request->categoria_id;
     }
 
-    public function update(Request $request, Articulo $articulo)
-    {
-        $validated = $request->validate(
-            $this->rules(),
-            $this->messages(),
-            $this->attributes()
-        );
+    $registro->update($payload);
 
-        $articulo->update($validated);
-
-        return redirect()->route('articulos.index')
-            ->with('success', 'Artículo actualizado exitosamente.');
+    return redirect()->route('admin.configsistem.index', $tabla)
+        ->with('success', 'Registro actualizado correctamente.');
     }
 
-    public function destroy(Articulo $articulo)
+    public function destroy(string $tabla, int $id)
     {
-        $articulo->delete();
+        if (!array_key_exists($tabla, $this->modelos)) {
+            abort(404);
+        }
 
-        return redirect()->route('articulos.index')
-            ->with('success', 'Artículo eliminado exitosamente.');
+        $modelo = $this->modelos[$tabla];
+        $modelo::findOrFail($id)->delete();
+
+        return redirect()
+            ->route('admin.configsistem.index', $tabla)
+            ->with('success', 'Registro eliminado correctamente.');
     }
 }

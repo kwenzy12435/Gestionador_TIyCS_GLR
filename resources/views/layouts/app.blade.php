@@ -118,7 +118,6 @@
 
       {{-- Buscador global opcional --}}
       <form class="d-none d-md-flex ms-3 flex-grow-1" role="search" method="GET" action="{{ route('dashboard') }}" aria-label="Búsqueda rápida">
-       
       </form>
 
       <div class="ms-auto d-flex align-items-center gap-3">
@@ -181,8 +180,6 @@
   {{-- Contenido --}}
   <main class="app-content container-fluid">
     @include('partials.flash')
-    {{-- Si usas el bloque de errores globales: --}}
-    {{-- @include('partials.validation-errors') --}}
 
     @hasSection('page-header')
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -198,40 +195,40 @@
     <span>&copy; {{ now()->year }} Grupo López-Rosa — Gestionador TI</span>
   </footer>
 
-  {{-- Loader global (oculto por defecto) --}}
-  <div id="globalLoader" class="app-preloader is-hide" aria-hidden="true">
+  {{-- Loader global viejo (ya no se usa, pero se deja por si lo quieres en el futuro) --}}
+  <div id="globalLoader" class="app-preloader d-none" aria-hidden="true">
     <div class="app-preloader__spinner" role="status" aria-label="Cargando"></div>
     <div class="mt-3 small text-muted">Cargando…</div>
   </div>
 
- {{-- ===================== --}}
-{{-- Confirm Modal + Loader --}}
-{{-- ===================== --}}
+  {{-- ===================== --}}
+  {{-- Confirm Modal + Loader --}}
+  {{-- ===================== --}}
 
-{{-- Modal de confirmación global --}}
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmTitle">Confirmar</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <p id="confirmMessage" class="mb-0">¿Estás seguro?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" id="confirmCancel" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmOk">Sí, continuar</button>
+  {{-- Modal de confirmación global --}}
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmTitle">Confirmar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage" class="mb-0">¿Estás seguro?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmOk">Sí, continuar</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-{{-- Loader overlay (capa de carga) --}}
-<div id="appLoader" class="app-loader d-none" aria-hidden="true">
-  <div class="spinner-border" role="status" aria-hidden="true"></div>
-  <span class="visually-hidden">Cargando…</span>
-</div>
+  {{-- Loader overlay (capa de carga) --}}
+  <div id="appLoader" class="app-loader d-none" aria-hidden="true">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <span class="visually-hidden">Cargando…</span>
+  </div>
 
   @stack('scripts')
 </body>

@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-@include('partials.flash')
+
 
 <div class="card p-3 shadow-sm">
     <!-- Barra de búsqueda -->
@@ -105,16 +105,18 @@
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('monitoreo_red.destroy', $monitoreo) }}" 
-                                  method="POST" 
-                                  class="d-inline" 
-                                  onsubmit="return confirm('¿Estás seguro de eliminar este registro?')">
-                                @csrf 
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                                <form action="{{ route('monitoreo_red.destroy', $monitoreo) }}" 
+      method="POST" 
+      class="d-inline"
+      data-confirm="¿Estás seguro de eliminar este registro de monitoreo?"
+      data-confirm-title="Eliminar registro de monitoreo"
+      data-confirm-variant="danger">
+    @csrf 
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+        <i class="bi bi-trash"></i>
+    </button>
+</form>
                         </td>
                     </tr>
                 @empty

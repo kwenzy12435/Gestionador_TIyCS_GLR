@@ -73,15 +73,18 @@
                        class="btn btn-outline-warning" title="Editar">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <form action="{{ route('reporte_actividades.destroy', $reporte->id) }}"
-                          method="POST" class="d-inline"
-                          onsubmit="return confirm('¿Eliminar este reporte?')">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-outline-danger" title="Eliminar">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+                     <form action="{{ route('reporte_actividades.destroy', $reporte->id) }}"
+      method="POST"
+      class="d-inline"
+      data-confirm="¿Eliminar este reporte?"
+      data-confirm-title="Eliminar reporte de actividades"
+      data-confirm-variant="danger">
+  @csrf
+  @method('DELETE')
+  <button type="submit" class="btn btn-outline-danger" title="Eliminar">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
                   </div>
                 </td>
               </tr>

@@ -79,13 +79,18 @@
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     @if($usuario->id !== auth()->id())
-                                        <form action="{{ route('usuarios-ti.destroy', ['usuarioTi' => $key]) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar a {{ $usuario->usuario }}?')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                        <form action="{{ route('usuarios-ti.destroy',$usuario) }}"
+      method="POST"
+      class="d-inline"
+      data-confirm="¿Estás seguro de eliminar a {{ $usuario->usuario }}?"
+      data-confirm-title="Eliminar usuario TI">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-trash"></i>
+    </button>
+</form>
+
                                     @else
                                         <button class="btn btn-outline-secondary" disabled title="No puedes eliminarte a ti mismo">
                                             <i class="bi bi-trash"></i>

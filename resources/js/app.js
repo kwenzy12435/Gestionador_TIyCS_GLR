@@ -6,33 +6,34 @@
  * - Tom Select para selects con búsqueda
  */
 
-import * as bootstrap from 'bootstrap';             // ✅ acceso a Tooltip/Offcanvas/etc.
+import * as bootstrap from 'bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../scss/app.scss';
 
 import './dashboard';
 import TomSelect from 'tom-select';
 
-// Haz bootstrap disponible globalmente si otros scripts lo usan
+// Hacer bootstrap disponible globalmente
 window.bootstrap = bootstrap;
 
-// Utilidad: convierte NodeList a Array
+// Utilidad: NodeList -> Array
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+/* ==========================================
+ * 1) Tooltips / Popovers / Sidebar / Alerts / TomSelect
+ * ========================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  // ==============================
-  // 1) Tooltips / Popovers
-  // ==============================
-  $$( '[data-bs-toggle="tooltip"]' ).forEach(el => {
+  // Tooltips
+  $$('[data-bs-toggle="tooltip"]').forEach(el => {
     new bootstrap.Tooltip(el, { boundary: 'window' });
   });
-  $$( '[data-bs-toggle="popover"]' ).forEach(el => {
+
+  // Popovers
+  $$('[data-bs-toggle="popover"]').forEach(el => {
     new bootstrap.Popover(el, { sanitize: true });
   });
 
-  // ==========================================
-  // 2) Cerrar sidebar (offcanvas) al navegar
-  // ==========================================
+  // Cerrar sidebar al hacer click en un link
   const sidebarEl = document.getElementById('appSidebar');
   if (sidebarEl) {
     sidebarEl.addEventListener('click', (e) => {
@@ -43,24 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ==========================================
-  // 3) Auto-dismiss de alertas flash (opcional)
-  //    Agrega class="auto-dismiss" en tu partial
-  // ==========================================
+  // Auto-dismiss de alertas flash
   $$('.alert.auto-dismiss').forEach((el) => {
     const inst = bootstrap.Alert.getOrCreateInstance(el);
     setTimeout(() => inst.close(), 4500);
   });
 
-  // ==========================================
-  // 4) Tom Select (selects con búsqueda)
-  //    Mantiene placeholders y respeta opción vacía
-  // ==========================================
+  // Inicializador genérico de Tom Select
   const initTomSelect = (id, placeholder = 'Seleccionar…') => {
     const el = document.getElementById(id);
     if (!el) return null;
 
-    // Si ya fue inicializado, no repetir
     if (el.dataset.tsInit === '1') return null;
 
     const ts = new TomSelect(el, {
@@ -71,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       maxOptions: 10000,
       diacritics: true,
       sortField: [{ field: 'text', direction: 'asc' }],
-      dropdownParent: 'body', // evita issues de z-index dentro de modals/offcanvas
+      dropdownParent: 'body',
       plugins: { clear_button: { title: 'Limpiar' } },
       render: {
         option: (data, escape) => `<div>${escape(data.text)}</div>`,
@@ -83,215 +77,154 @@ document.addEventListener('DOMContentLoaded', () => {
     return ts;
   };
 
-  // Colaborador (con buscador)
+  // Selects más comunes
   initTomSelect('colaborador_id', 'Buscar colaborador…');
-
-  // Otros selects comunes del sistema (si existen en la vista actual)
   ['canal_id', 'naturaleza_id', 'usuario_ti_id'].forEach(id => {
     initTomSelect(id, 'Seleccionar…');
   });
 });
 
-// ==============================
-// 5) Loader global (overlay)
-// ==============================
+/* ==========================================
+ * 2) Loader global sencillo (usa #appLoader)
+ * ========================================== */
 const AppLoader = (() => {
-  const el = document.getElementById('globalLoader');
-  const show = () => { if (el) el.classList.remove('is-hide'); };
-  const hide = () => { if (el) el.classList.add('is-hide'); };
-  return { show, hide };
+  let el = null;
+  const getEl = () => {
+    if (!el) el = document.getElementById('appLoader');
+    return el;
+  };
+  return {
+    show() {
+      const loader = getEl();
+      if (loader) loader.classList.remove('d-none');
+    },
+    hide() {
+      const loader = getEl();
+      if (loader) loader.classList.add('d-none');
+    }
+  };
 })();
 
-// Asegura que el loader quede oculto al cargar
+// Asegura que el loader empiece oculto
 document.addEventListener('DOMContentLoaded', () => AppLoader.hide());
 
-// ==============================
-// 6) Confirm Modal + interceptores
-// ==============================
+// Para cuando vuelves con el botón "atrás" del navegador
+window.addEventListener('pageshow', () => AppLoader.hide());
+
+/* ==========================================
+ * 3) Confirmación global + loader
+ *    - Se aplica a TODOS los forms DELETE
+ *    - Y a cualquier form con data-confirm="mensaje..."
+ * ========================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  const modalEl = document.getElementById('confirmModal');
-  if (!modalEl) return;
+  const modalEl   = document.getElementById('confirmModal');
+  const okBtn     = document.getElementById('confirmOk');
+  const titleEl   = document.getElementById('confirmTitle');
+  const msgEl     = document.getElementById('confirmMessage');
 
-  const titleEl = document.getElementById('confirmTitle');
-  const textEl  = document.getElementById('confirmText');
-  const okBtn   = document.getElementById('confirmOk');
+  if (!modalEl || !okBtn || !titleEl || !msgEl) return;
 
-  const bsModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
-
-  let resolving = null;
-  let confirmed = false;
-
-  function askConfirm({ title, text, yesText = 'Sí, continuar', variant = 'primary' }) {
-    return new Promise((resolve) => {
-      resolving = resolve;
-      confirmed = false;
-
-      if (titleEl) titleEl.textContent = title || '¿Confirmar acción?';
-      if (textEl)  textEl.textContent  = text  || 'Esta acción no se puede deshacer.';
-
-      // reset + variante de botón
-      okBtn.className = 'btn';
-      okBtn.classList.add(`btn-${variant || 'primary'}`);
-      okBtn.textContent = yesText;
-
-      bsModal.show();
-    });
-  }
-
-  okBtn?.addEventListener('click', () => {
-    confirmed = true;
-    bsModal.hide();
-    if (resolving) resolving(true);
-  });
-  modalEl.addEventListener('hidden.bs.modal', () => {
-    if (!confirmed && resolving) resolving(false);
-    resolving = null;
+  const modal = new bootstrap.Modal(modalEl, {
+    backdrop: 'static',
+    keyboard: false,
   });
 
-  // Intercepta formularios con data-confirm (y muestra loader por defecto)
-  document.addEventListener('submit', async (ev) => {
-    const form = ev.target;
+  let formToSubmit = null;
+
+  // Intercepta submits
+  document.body.addEventListener('submit', (event) => {
+    const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
 
-    // Loader por defecto (desactiva con data-no-loader="true")
-    if (!form.dataset.noLoader) AppLoader.show();
+    // ¿Es DELETE?
+    const methodAttr  = (form.getAttribute('method') || 'GET').toUpperCase();
+    const hasSpoofDel = form.querySelector('input[name="_method"][value="DELETE"]') !== null;
+    const isDelete    = methodAttr === 'DELETE' || hasSpoofDel;
 
-    if (form.matches('[data-confirm]') && !form.dataset.confirmed) {
-      ev.preventDefault(); // detén envío
-      const ok = await askConfirm({
-        title:   form.dataset.confirmTitle || '¿Confirmar acción?',
-        text:    form.dataset.confirm || 'Esta acción no se puede deshacer.',
-        yesText: form.dataset.confirmYes || 'Sí, continuar',
-        variant: form.dataset.confirmVariant || 'danger',
-      });
-      if (ok) {
-        form.dataset.confirmed = '1'; // evita loop
-        form.submit();
-      } else {
-        AppLoader.hide();
+    // ¿Tiene data-confirm explícito?
+    const hasDataConfirm = form.hasAttribute('data-confirm');
+
+    // ¿Requerimos confirmación?
+    const requireConfirm = isDelete || hasDataConfirm;
+
+    // Permitir saltarse confirmación
+    if (!requireConfirm ||
+        form.dataset.noConfirm === 'true' ||
+        form.dataset.confirmed === '1') {
+
+      // Si el form pide loader explícito
+      if (form.dataset.loading === 'true') {
+        AppLoader.show();
       }
+      return;
+    }
+
+    event.preventDefault();
+
+    const title = form.dataset.confirmTitle ||
+      (isDelete ? 'Eliminar registro' : 'Confirmar acción');
+
+    const message = form.dataset.confirm ||
+      (isDelete ? '¿Seguro que deseas eliminar este registro?' : '¿Seguro que deseas continuar?');
+
+    const yesText = form.dataset.confirmYes ||
+      (isDelete ? 'Sí, eliminar' : 'Sí, continuar');
+
+    const variant = form.dataset.confirmVariant ||
+      (isDelete ? 'danger' : 'primary');
+
+    titleEl.textContent = title;
+    msgEl.textContent   = message;
+    okBtn.textContent   = yesText;
+    okBtn.className     = `btn btn-${variant}`;
+
+    formToSubmit = form;
+    modal.show();
+  });
+
+  // Al confirmar
+  okBtn.addEventListener('click', () => {
+    if (!formToSubmit) {
+      modal.hide();
+      return;
+    }
+
+    // Evita bucle
+    formToSubmit.dataset.confirmed = '1';
+
+    // Mostrar loader salvo que se desactive
+    if (formToSubmit.dataset.noLoader !== 'true') {
+      AppLoader.show();
+    }
+
+    modal.hide();
+
+    // Pequeño delay para que cierre visualmente el modal
+    setTimeout(() => {
+      formToSubmit.requestSubmit();
+      formToSubmit = null;
+    }, 50);
+  });
+
+  // Si se cierra el modal sin confirmar
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    // Si no hay forms pendientes, asegúrate de ocultar loader
+    if (!document.querySelector('.modal.show')) {
+      formToSubmit = null;
+      AppLoader.hide();
     }
   });
 
-  // Enlaces que deben mostrar loader
-  document.addEventListener('click', (ev) => {
-    const a = ev.target.closest('a[href]');
-    if (!a) return;
-    if (a.dataset.noLoader) return;
-    if (a.dataset.loading === 'true') {
-      AppLoader.show();
-    }
+  // Loader para enlaces / botones que lo pidan
+  document.body.addEventListener('click', (ev) => {
+    const el = ev.target.closest('[data-loading="true"]');
+    if (!el) return;
+
+    // Si está dentro de un form con confirmación, el loader lo maneja el submit
+    if (el.closest('form[data-confirm]')) return;
+
+    AppLoader.show();
   });
 });
 
 export { AppLoader };
-
-// ==============================
-// CONFIRMACIÓN GLOBAL + LOADER (FIX)
-// ==============================
-(() => {
-  const $  = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-  // Loader helpers
-  const showLoader = () => { $('#appLoader')?.classList.remove('d-none'); };
-  const hideLoader = () => { $('#appLoader')?.classList.add('d-none'); };
-
-  // Limpia backdrops y estado del body (bootstrap)
-  const cleanupBackdrops = () => {
-    $$('.modal-backdrop').forEach(el => el.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('paddingRight');
-    document.body.style.removeProperty('overflow');
-  };
-
-  // Modal de confirmación
-  const modalEl = document.getElementById('confirmModal');
-  const modal   = modalEl ? new window.bootstrap.Modal(modalEl, { backdrop: 'static' }) : null;
-  const titleEl = document.getElementById('confirmTitle');
-  const msgEl   = document.getElementById('confirmMessage');
-  const okBtn   = document.getElementById('confirmOk');
-  const cancelB = document.getElementById('confirmCancel');
-
-  let pendingForm = null;
-
-  // (1) Interceptar formularios marcados con data-confirm
-  document.addEventListener('submit', (ev) => {
-    const form = ev.target.closest('form[data-confirm]');
-    if (!form) return;
-
-    // Si ya fue confirmado, deja fluir
-    if (form.dataset.confirmed === '1') return;
-
-    ev.preventDefault();
-
-    // Configurar modal con textos
-    titleEl.textContent  = form.dataset.confirmTitle || 'Confirmar';
-    msgEl.textContent    = form.dataset.confirm || '¿Estás seguro?';
-    const variant        = form.dataset.confirmVariant || 'danger';
-    okBtn.className      = `btn btn-${variant}`;
-    okBtn.textContent    = form.dataset.confirmYes || 'Sí, continuar';
-
-    pendingForm = form;
-    modal?.show();
-  });
-
-  // (2) Confirmar => mostrar loader (si se pidió) y enviar
-  okBtn?.addEventListener('click', () => {
-    if (!pendingForm) return;
-
-    // Mostrar loader SOLO al confirmar
-    if (pendingForm.dataset.loading === 'true') showLoader();
-
-    pendingForm.dataset.confirmed = '1';
-    modal?.hide();
-
-    // Pequeño delay para que Bootstrap cierre el modal
-    setTimeout(() => pendingForm.requestSubmit(), 10);
-  });
-
-  // (3) Cancelar => limpiar y ocultar loader
-  const onCancel = () => {
-    pendingForm = null;
-    hideLoader();
-    cleanupBackdrops();
-  };
-  cancelB?.addEventListener('click', onCancel);
-
-  // (4) Al cerrar cualquier modal, asegurar limpieza
-  modalEl?.addEventListener('hidden.bs.modal', onCancel);
-  document.addEventListener('hidden.bs.modal', () => {
-    // Si no queda ningún modal abierto
-    if (!document.querySelector('.modal.show')) cleanupBackdrops();
-    hideLoader();
-  });
-
-  // (5) Click en cualquier botón de cierre de modal
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('[data-bs-dismiss="modal"]')) {
-      onCancel();
-    }
-  });
-
-  // (6) Loader para acciones directas (enlaces/botones) que NO abren confirmación
-  document.addEventListener('click', (ev) => {
-    const el = ev.target.closest('[data-loading="true"]');
-    if (!el) return;
-
-    // Si está dentro de un form con confirmación, no mostrar loader aún
-    if (el.closest('form[data-confirm]')) return;
-
-    // Si el click ocurre dentro de un modal, no bloquees hasta que realmente se envíe algo
-    if (el.closest('.modal')) return;
-
-    showLoader();
-  });
-
-  // (7) ESC también limpia por si acaso
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') onCancel();
-  });
-
-  // (8) Al volver con el historial, asegúrate de esconder loader
-  window.addEventListener('pageshow', hideLoader);
-})();

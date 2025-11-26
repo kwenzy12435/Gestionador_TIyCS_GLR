@@ -157,25 +157,40 @@ class LicenciaController extends Controller
 
     /** Procesa la verificación y muestra la contraseña desencriptada */
     public function procesarVerContrasena(Request $request, Licencia $licencia)
-    {
-        $data = $request->validate([
-            'password' => ['required','string','min:8'],
-        ], $this->messages(), $this->attributes());
-
-        $hashed = Auth::user()->password; // usa el hash del usuario autenticado
-        if (! Hash::check($data['password'], $hashed)) {
-            return back()->withErrors(['password' => 'Contraseña incorrecta.'])->withInput();
-        }
-
-        try {
-            $contrasenaRevelada = Crypt::decryptString($licencia->contrasena);
-        } catch (DecryptException $e) {
-            return back()->withErrors(['password' => 'No fue posible revelar la contraseña.'])->withInput();
-        }
-
-        $mostrarContrasena = true;
-        return view('licencias.ver-contrasena', compact('licencia','contrasenaRevelada','mostrarContrasena'));
+{
+    // 1) Verificar que haya sesión activa
+    $user = Auth::user();
+    if (! $user) {
+        return redirect()
+            ->route('login')
+            ->with('error', 'Tu sesión ha expirado. Inicia sesión nuevamente para ver la contraseña.');
     }
+
+    // 2) Validar que la contraseña ingresada sea la del usuario autenticado
+    $request->validate(
+        [
+            'password' => ['required', 'string', 'min:8', 'current_password'],
+        ],
+        array_merge($this->messages(), [
+            'password.current_password' => 'La contraseña no coincide con tu contraseña de sesión.',
+        ]),
+        $this->attributes()
+    );
+
+    // 3) Intentar desencriptar la contraseña de la licencia
+    try {
+        $contrasenaRevelada = Crypt::decryptString($licencia->contrasena);
+    } catch (DecryptException $e) {
+        return back()
+            ->withErrors(['password' => 'No fue posible revelar la contraseña de esta licencia (registro dañado o no cifrado).'])
+            ->withInput();
+    }
+
+    $licencia->load('plataforma');
+    $mostrarContrasena = true;
+
+    return view('licencias.ver-contrasena', compact('licencia', 'contrasenaRevelada', 'mostrarContrasena'));
+}
 
     /** Endpoint JSON para confirmar contraseña del usuario (si usas AJAX) */
     public function confirmarPassword(Request $request): JsonResponse

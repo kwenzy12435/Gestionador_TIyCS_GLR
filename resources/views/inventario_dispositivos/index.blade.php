@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-@include('partials.flash')
+
 
 <div class="card p-3 shadow-sm">
     <!-- Filtros -->
@@ -134,16 +134,18 @@
                                class="btn btn-sm btn-outline-info" title="Descargar QR">
                                 <i class="bi bi-qr-code"></i>
                             </a>
-                            <form action="{{ route('inventario-dispositivos.destroy', $dispositivo) }}" 
-                                  method="POST" 
-                                  class="d-inline" 
-                                  onsubmit="return confirm('¿Estás seguro de eliminar este dispositivo?')">
-                                @csrf 
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                           <form action="{{ route('inventario-dispositivos.destroy', $dispositivo) }}" 
+      method="POST" 
+      class="d-inline"
+      data-confirm="¿Estás seguro de eliminar este dispositivo?"
+      data-confirm-title="Eliminar dispositivo"
+      data-confirm-variant="danger">
+    @csrf 
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+        <i class="bi bi-trash"></i>
+    </button>
+</form>
                         </td>
                     </tr>
                 @empty
